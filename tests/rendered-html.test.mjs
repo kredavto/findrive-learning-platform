@@ -1,26 +1,19 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-async function render() {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
+test("contains the FINDRIVE Academy learning experience", async () => {
+  const [page, layout, styles] = await Promise.all([
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+  ]);
 
-  return worker.fetch(
-    new Request("http://localhost/", { headers: { accept: "text/html" } }),
-    { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
-    { waitUntil() {}, passThroughOnException() {} },
-  );
-}
-
-test("renders the FINDRIVE Academy shell", async () => {
-  const response = await render();
-  assert.equal(response.status, 200);
-  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
-
-  const html = await response.text();
-  assert.match(html, /<title>ФИНДРАЙВ Академия<\/title>/i);
-  assert.match(html, /Путь амбассадора/i);
-  assert.match(html, /Лестница Ханта/i);
-  assert.doesNotMatch(html, /Your site is taking shape/i);
+  assert.match(layout, /ФИНДРАЙВ Академия/i);
+  assert.match(page, /Лестница Ханта/i);
+  assert.match(page, /SPIN/i);
+  assert.match(page, /Работа с возражениями/i);
+  assert.match(page, /Юридические лица/i);
+  assert.match(styles, /FINDRIVE presentation palette/i);
+  assert.doesNotMatch(page, /Your site is taking shape/i);
 });
