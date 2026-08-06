@@ -367,7 +367,6 @@ function Course() {
   const [finalAnswers, setFinalAnswers] = useState<Record<string, string>>({});
   const [videoUrls, setVideoUrls] = useState<Record<string, string>>({});
   const [videoNames, setVideoNames] = useState<Record<string, string>>({});
-  const [watchedLessons, setWatchedLessons] = useState<string[]>([]);
   const [videoError, setVideoError] = useState("");
 
   const block = learningBlocks[blockIndex];
@@ -384,7 +383,6 @@ function Course() {
   const lessonUnlocked = (index: number) => index === 0 || block.lessons.slice(0, index).every((item) => completedLessons.includes(item.id));
   const finalPassed = block.finalQuestions.every((item) => finalAnswers[item.id] === item.correct);
   const lessonCompleted = currentLesson ? completedLessons.includes(currentLesson.id) : false;
-  const videoWatched = currentLesson ? watchedLessons.includes(currentLesson.id) || lessonCompleted : false;
   const lessonAnswerCorrect = currentLesson ? lessonAnswer === currentLesson.question.correct : false;
   const canContinueLesson = lessonCompleted || lessonAnswerCorrect;
 
@@ -424,7 +422,6 @@ function Course() {
     const nextUrl = URL.createObjectURL(file);
     setVideoUrls((current) => ({ ...current, [currentLesson.id]: nextUrl }));
     setVideoNames((current) => ({ ...current, [currentLesson.id]: file.name }));
-    setWatchedLessons((current) => current.filter((id) => id !== currentLesson.id));
     setVideoError("");
   };
 
@@ -447,7 +444,7 @@ function Course() {
 
   return <>
     <section className="page-heading learning-heading">
-      <div><Badge tone="date">Программа амбассадора</Badge><h1>Последовательное обучение</h1><p>Урок → видео → текст → проверка. Следующий блок откроется только после итогового теста.</p></div>
+      <div><Badge tone="date">Программа амбассадора</Badge><h1>Последовательное обучение</h1><p>Видео и текст урока доступны сразу. Следующий блок откроется только после итогового теста.</p></div>
       <div className="heading-stat"><strong>{overallProgress}%</strong><span>{completedSteps} из {totalSteps} шагов</span></div>
     </section>
 
@@ -486,18 +483,18 @@ function Course() {
 
           <section className="video-learning-card" aria-label={`Видео к уроку ${currentLesson.title}`}>
             {videoUrls[currentLesson.id] ? <>
-              <video key={videoUrls[currentLesson.id]} controls preload="metadata" onEnded={() => setWatchedLessons((current) => current.includes(currentLesson.id) ? current : [...current, currentLesson.id])}>
+              <video key={videoUrls[currentLesson.id]} controls preload="metadata">
                 <source src={videoUrls[currentLesson.id]} type="video/mp4" />
                 Ваш браузер не поддерживает видео MP4.
               </video>
-              <div className="video-meta"><div><strong>{videoNames[currentLesson.id]}</strong><small>{videoWatched ? "Видео просмотрено — текст открыт" : "Досмотрите видео до конца, чтобы открыть текст"}</small></div><label className="video-replace">Заменить MP4<input type="file" accept="video/mp4,.mp4" onChange={uploadVideo}/></label></div>
+              <div className="video-meta"><div><strong>{videoNames[currentLesson.id]}</strong><small>Текст урока уже доступен ниже — видео можно смотреть в удобном темпе</small></div><label className="video-replace">Заменить MP4<input type="file" accept="video/mp4,.mp4" onChange={uploadVideo}/></label></div>
             </> : <label className="video-upload-zone">
-              <span><BookOpen size={28}/></span><strong>Загрузите видео к уроку</strong><small>Одно видео в формате MP4. После просмотра откроется текстовая часть.</small><em>Выбрать MP4</em><input type="file" accept="video/mp4,.mp4" onChange={uploadVideo}/>
+              <span><BookOpen size={28}/></span><strong>Загрузите видео к уроку</strong><small>Одно видео в формате MP4. Текстовая часть урока доступна независимо от загрузки и просмотра видео.</small><em>Выбрать MP4</em><input type="file" accept="video/mp4,.mp4" onChange={uploadVideo}/>
             </label>}
             {videoError && <p className="video-error" role="alert">{videoError}</p>}
           </section>
 
-          {!videoWatched ? <section className="lesson-text-gate"><LockKeyhole size={24}/><div><strong>Текст урока пока закрыт</strong><p>Сначала загрузите и досмотрите короткое видео до конца.</p></div></section> : <div className="lesson-reading">
+          <div className="lesson-reading">
             <p className="lesson-intro">{currentLesson.intro}</p>
             <aside className="green-callout"><CheckCircle2 size={20}/><p>{currentLesson.callout}</p></aside>
             <div className="lesson-points"><h3>Ключевые пункты:</h3><ul>{currentLesson.points.map((point) => <li key={point}><Check size={15}/><span>{point}</span></li>)}</ul></div>
@@ -510,7 +507,7 @@ function Course() {
             </section>
 
             <footer className="lesson-next"><button className="primary-button" disabled={!canContinueLesson} onClick={completeLesson}>{lessonIndex === block.lessons.length - 1 ? "Перейти к тесту блока" : "Следующий урок"}<ChevronRight size={17}/></button><small>{lessonIndex < block.lessons.length - 1 ? `Следующий урок: ${block.lessons[lessonIndex + 1].title}` : "После урока откроется итоговый тест блока"}</small></footer>
-          </div>}
+          </div>
         </> : <section className="block-final-test">
           <Badge tone={currentBlockCompleted ? "active" : "review"}>{currentBlockCompleted ? "Блок завершён" : "Итоговый тест"}</Badge>
           <h2>{block.title}</h2><p>Ответьте правильно на все вопросы. Только после этого откроется следующий блок.</p>

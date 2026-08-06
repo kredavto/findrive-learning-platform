@@ -15,6 +15,9 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /Ответы на возражения/i);
   assert.match(page, /Юридические лица/i);
   assert.match(page, /accept="video\/mp4,.mp4"/i);
+  assert.match(page, /Текст урока уже доступен ниже/i);
+  assert.doesNotMatch(page, /Текст урока пока закрыт/i);
+  assert.doesNotMatch(page, /watchedLessons|videoWatched/i);
   assert.match(page, /Следующий блок откроется только после итогового теста/i);
   assert.match(styles, /green-callout/i);
   assert.match(styles, /FINDRIVE presentation palette/i);
