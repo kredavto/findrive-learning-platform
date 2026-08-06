@@ -689,7 +689,7 @@ function PositionDemo({ firstName, progress, onProgress, onComplete }: { firstNa
 
   return <>
     <section className="page-heading learning-heading demo-heading">
-      <div><Badge tone="active">Обязательный вводный этап</Badge><h1>Демонстрация должности &quot;Амбассадор&quot;</h1><p>Познакомьтесь с компанией, функционалом позиции амбассадор и его ролью. После этого Вам откроется основной курс обучения по привлечению инвестиций.</p></div>
+      <div><Badge tone="active">Обязательный вводный этап</Badge><h1>Демонстрация должности &quot;Амбассадор&quot; / Партнер по привлечению инвестиций</h1><p>Познакомьтесь с компанией, функционалом позиции амбассадор и его ролью. После этого Вам откроется основной курс обучения по привлечению инвестиций.</p></div>
       <div className="heading-stat"><strong>{percent}%</strong><span>{completed.length} из {jobDemoLessons.length} тем</span></div>
     </section>
     <section className="demo-route card"><div><Sparkles size={22}/><span><small>Ваш маршрут</small><strong>Регистрация → демонстрация должности → курс амбассадора</strong></span></div><i><b style={{ width: `${percent}%` }}/></i></section>
