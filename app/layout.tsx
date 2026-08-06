@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { Geist } from "next/font/google";
+import { Cormorant_Garamond, Geist } from "next/font/google";
 import "./globals.css";
 
 const geist = Geist({ variable: "--font-geist", subsets: ["latin", "cyrillic"] });
+const welcomeSerif = Cormorant_Garamond({ variable: "--font-welcome", subsets: ["latin", "cyrillic"], weight: "600" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
@@ -25,5 +26,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="ru"><body className={geist.variable}>{children}</body></html>;
+  return <html lang="ru"><body className={`${geist.variable} ${welcomeSerif.variable}`}>{children}</body></html>;
 }
