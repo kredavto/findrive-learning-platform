@@ -87,7 +87,9 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /Демонстрация должности &quot;Амбассадор&quot;/i);
   assert.match(styles, /Per-user, per-lesson dashboard detail/i);
   assert.match(layout, /Cormorant_Garamond/i);
+  assert.match(layout, /weight: "500", style: "italic"/i);
   assert.match(styles, /font-family:var\(--font-welcome\)/i);
+  assert.match(styles, /welcome-line\{[^}]*font-style:italic;font-weight:500/i);
   assert.match(styles, /Refined lesson typography/i);
   assert.match(styles, /lesson-reading>\.lesson-intro:not\(\.welcome-line\).*font-size:15px/i);
   assert.match(page, /--parallax-x/i);
