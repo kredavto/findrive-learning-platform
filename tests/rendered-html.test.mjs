@@ -85,6 +85,9 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /от знакомства с компанией до выплаты вознаграждения/i);
   assert.doesNotMatch(page, /от знакомства с компанией до отчётности и выплаты вознаграждения/i);
   assert.match(page, /Демонстрация должности &quot;Амбассадор&quot;/i);
+  assert.match(page, /Изучите демонстрацию должности, краткую информацию о компании и роли амбассадора/i);
+  assert.match(page, /Пройденный материал позволит Вам максимально эффективно вести переговоры с потенциальными инвесторами/i);
+  assert.doesNotMatch(page, /Сначала поймите результат должности и рабочий маршрут/i);
   assert.match(styles, /Per-user, per-lesson dashboard detail/i);
   assert.match(layout, /Cormorant_Garamond/i);
   assert.match(layout, /weight: "500", style: "italic"/i);
