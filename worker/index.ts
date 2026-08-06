@@ -144,8 +144,8 @@ async function issueEmailVerification(env: Env, userId: string, contactEmail: st
     email_verification_token_hash = ?, email_verification_expires_at = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
     .bind(tokenHash, expiresAt, userId).run();
   const verificationUrl = `${origin}/api/verify-email?token=${token}`;
-  const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#1b2430"><h1 style="color:#111">Подтвердите адрес электронной почты</h1><p>Вы указали этот адрес при регистрации в Академии ФИНДРАЙВ.</p><p><a href="${verificationUrl}" style="display:inline-block;background:#111;color:#f0c75e;text-decoration:none;padding:13px 20px;border-radius:8px;font-weight:700">Подтвердить адрес</a></p><p style="color:#68778a;font-size:13px">Ссылка действует 24 часа и может быть использована только один раз. Если вы не регистрировались, просто проигнорируйте письмо.</p></div>`;
-  return sendTransactionalEmail(env, contactEmail, "Подтвердите адрес электронной почты — ФИНДРАЙВ Академия", html, `findrive-verify-${userId}-${tokenHash.slice(0, 16)}`);
+  const html = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#1b2430"><h1 style="color:#111">Подтверди адрес электронной почты</h1><p>Ты указал этот адрес при регистрации в Академии ФИНДРАЙВ.</p><p><a href="${verificationUrl}" style="display:inline-block;background:#111;color:#f0c75e;text-decoration:none;padding:13px 20px;border-radius:8px;font-weight:700">Подтвердить адрес</a></p><p style="color:#68778a;font-size:13px">Ссылка действует 24 часа и может быть использована только один раз. Если ты не регистрировался, просто проигнорируй письмо.</p></div>`;
+  return sendTransactionalEmail(env, contactEmail, "Подтверди адрес электронной почты — ФИНДРАЙВ Академия", html, `findrive-verify-${userId}-${tokenHash.slice(0, 16)}`);
 }
 
 const verificationPage = (success: boolean, title: string, message: string) => new Response(`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="margin:0;background:#050505;color:#fff;font-family:Arial,sans-serif;min-height:100vh;display:grid;place-items:center;padding:20px"><main style="max-width:560px;text-align:center;background:#15130f;border:1px solid #5c4722;border-radius:18px;padding:38px"><div style="font-size:38px;color:${success ? "#70d895" : "#ff9aa1"}">${success ? "✓" : "!"}</div><h1 style="color:#f3d47e">${title}</h1><p style="color:#bdb3a2;line-height:1.6">${message}</p><a href="/" style="display:inline-block;background:linear-gradient(135deg,#f0d16f,#b97b24);color:#090704;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700;margin-top:8px">Вернуться в Академию</a></main></body></html>`, { status: success ? 200 : 400, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
@@ -153,14 +153,14 @@ const verificationPage = (success: boolean, title: string, message: string) => n
 async function handleEmailVerification(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   if (request.method !== "GET") return json({ error: "Метод не поддерживается." }, 405);
   const token = new URL(request.url).searchParams.get("token") || "";
-  if (!/^[a-f0-9]{64}$/.test(token)) return verificationPage(false, "Ссылка недействительна", "Запросите новое письмо на странице регистрации.");
+  if (!/^[a-f0-9]{64}$/.test(token)) return verificationPage(false, "Ссылка недействительна", "Запроси новое письмо на странице регистрации.");
   const tokenHash = await hashVerificationToken(token);
   const user = await env.DB.prepare(`SELECT id, contact_email AS contactEmail, email_verification_expires_at AS expiresAt
     FROM users WHERE email_verification_token_hash = ? AND email_verified = 0`).bind(tokenHash).first<{ id: string; contactEmail: string; expiresAt?: string }>();
-  if (!user || !user.expiresAt || new Date(user.expiresAt).getTime() < Date.now()) return verificationPage(false, "Срок ссылки истёк", "Вернитесь в Академию и запросите новое письмо для подтверждения адреса.");
+  if (!user || !user.expiresAt || new Date(user.expiresAt).getTime() < Date.now()) return verificationPage(false, "Срок ссылки истёк", "Вернись в Академию и запроси новое письмо для подтверждения адреса.");
   await env.DB.prepare(`UPDATE users SET email_verified = 1, email_verified_at = CURRENT_TIMESTAMP,
     email_verification_token_hash = NULL, email_verification_expires_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).bind(user.id).run();
-  const confirmationHtml = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto"><h1>Электронная почта успешно подтверждена</h1><p>Теперь вам доступна демонстрация должности и последующий курс амбассадора ФИНДРАЙВ.</p><p><a href="${new URL(request.url).origin}/">Открыть Академию</a></p></div>`;
+  const confirmationHtml = `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto"><h1>Электронная почта успешно подтверждена</h1><p>Теперь тебе доступна демонстрация должности и последующий курс амбассадора ФИНДРАЙВ.</p><p><a href="${new URL(request.url).origin}/">Открыть Академию</a></p></div>`;
   ctx.waitUntil(Promise.all([
     sendTransactionalEmail(env, user.contactEmail, "Почта успешно подтверждена — ФИНДРАЙВ Академия", confirmationHtml, `findrive-verified-${user.id}`),
     sendNotification(env, user.id, "registration", "Новый пользователь зарегистрировался на курс обучения амбассадоров"),
@@ -173,7 +173,7 @@ async function handleResendVerification(request: Request, env: Env): Promise<Res
   const { userId } = getAuth(request);
   if (!userId) return json({ error: "Требуется вход в систему." }, 401);
   const user = await env.DB.prepare("SELECT contact_email AS contactEmail, email_verified AS emailVerified FROM users WHERE id = ? AND registration_completed = 1").bind(userId).first<{ contactEmail?: string; emailVerified?: number }>();
-  if (!user?.contactEmail) return json({ error: "Сначала заполните карточку регистрации." }, 404);
+  if (!user?.contactEmail) return json({ error: "Сначала заполни карточку регистрации." }, 404);
   if (Number(user.emailVerified) === 1) return json({ verified: true });
   const result = await issueEmailVerification(env, userId, user.contactEmail, new URL(request.url).origin);
   if (!result.sent) return json({ error: result.error || "Не удалось отправить письмо." }, 503);
@@ -211,7 +211,7 @@ async function handleProfile(request: Request, env: Env, ctx: ExecutionContext):
   try {
     body = await request.json() as RegistrationPayload;
   } catch {
-    return json({ error: "Проверьте данные формы." }, 400);
+    return json({ error: "Проверь данные формы." }, 400);
   }
 
   const firstName = typeof body.firstName === "string" ? body.firstName.trim() : "";
@@ -223,13 +223,13 @@ async function handleProfile(request: Request, env: Env, ctx: ExecutionContext):
   const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail) && contactEmail.length <= 254;
 
   if (!validName(firstName) || !validName(lastName)) {
-    return json({ error: "Укажите имя и фамилию без цифр." }, 400);
+    return json({ error: "Укажи имя и фамилию без цифр." }, 400);
   }
   if (phoneDigits.length < 10 || phoneDigits.length > 15 || phone.length > 24) {
-    return json({ error: "Укажите корректный номер телефона." }, 400);
+    return json({ error: "Укажи корректный номер телефона." }, 400);
   }
   if (!validEmail) {
-    return json({ error: "Укажите корректную электронную почту." }, 400);
+    return json({ error: "Укажи корректную электронную почту." }, 400);
   }
 
   const displayName = `${firstName} ${lastName}`;
@@ -262,7 +262,7 @@ async function handleProgress(request: Request, env: Env, ctx: ExecutionContext)
   const { userId } = getAuth(request);
   if (!userId) return json({ error: "Требуется вход в систему." }, 401);
   const verified = await env.DB.prepare("SELECT email_verified AS emailVerified FROM users WHERE id = ? AND registration_completed = 1").bind(userId).first<{ emailVerified?: number }>();
-  if (Number(verified?.emailVerified) !== 1) return json({ error: "Сначала подтвердите адрес электронной почты." }, 403);
+  if (Number(verified?.emailVerified) !== 1) return json({ error: "Сначала подтверди адрес электронной почты." }, 403);
 
   if (request.method === "GET") {
     const [demosResult, lessonsResult, blocksResult, video] = await Promise.all([
@@ -283,14 +283,14 @@ async function handleProgress(request: Request, env: Env, ctx: ExecutionContext)
   try {
     body = await request.json() as ProgressPayload;
   } catch {
-    return json({ error: "Проверьте данные прогресса." }, 400);
+    return json({ error: "Проверь данные прогресса." }, 400);
   }
   const kind = body.kind === "demo" || body.kind === "lesson" || body.kind === "block" ? body.kind : "";
   const id = typeof body.id === "string" ? body.id : "";
   if (kind === "demo" && DEMO_IDS.has(id)) {
     const demoOrder = DEMO_SEQUENCE.indexOf(id as typeof DEMO_SEQUENCE[number]);
     const completedEarlier = await env.DB.prepare("SELECT COUNT(*) AS count FROM demo_progress WHERE user_id = ? AND completion_percent >= 100").bind(userId).first<{ count: number }>();
-    if (Number(completedEarlier?.count || 0) < demoOrder) return json({ error: "Сначала завершите предыдущую тему демонстрации должности." }, 403);
+    if (Number(completedEarlier?.count || 0) < demoOrder) return json({ error: "Сначала заверши предыдущую тему демонстрации должности." }, 403);
     const percent = typeof body.percent === "number" ? Math.max(0, Math.min(100, Math.round(body.percent))) : 100;
     await env.DB.prepare(`
       INSERT INTO demo_progress (user_id, demo_id, completion_percent, completed_at, updated_at)
@@ -304,7 +304,7 @@ async function handleProgress(request: Request, env: Env, ctx: ExecutionContext)
   }
   if (kind === "lesson" || kind === "block") {
     const completedDemo = await env.DB.prepare("SELECT COUNT(*) AS count FROM demo_progress WHERE user_id = ? AND completion_percent >= 100").bind(userId).first<{ count: number }>();
-    if (Number(completedDemo?.count || 0) < DEMO_IDS.size) return json({ error: "Сначала завершите демонстрацию должности." }, 403);
+    if (Number(completedDemo?.count || 0) < DEMO_IDS.size) return json({ error: "Сначала заверши демонстрацию должности." }, 403);
   }
   if (kind === "lesson" && LESSON_IDS.has(id)) {
     const percent = typeof body.percent === "number" ? Math.max(0, Math.min(100, Math.round(body.percent))) : 100;
@@ -368,16 +368,16 @@ async function handleVideoCard(request: Request, env: Env, ctx: ExecutionContext
   const { userId } = getAuth(request);
   if (!userId) return json({ error: "Требуется вход в систему." }, 401);
   const verified = await env.DB.prepare("SELECT email_verified AS emailVerified FROM users WHERE id = ? AND registration_completed = 1").bind(userId).first<{ emailVerified?: number }>();
-  if (Number(verified?.emailVerified) !== 1) return json({ error: "Сначала подтвердите адрес электронной почты." }, 403);
+  if (Number(verified?.emailVerified) !== 1) return json({ error: "Сначала подтверди адрес электронной почты." }, 403);
   if (request.method !== "POST") return json({ error: "Метод не поддерживается." }, 405);
 
   const completedBlocks = await env.DB.prepare("SELECT COUNT(*) AS count FROM block_progress WHERE user_id = ?").bind(userId).first<{ count: number }>();
-  if (Number(completedBlocks?.count || 0) < BLOCK_IDS.size) return json({ error: "Сначала завершите все блоки курса." }, 403);
+  if (Number(completedBlocks?.count || 0) < BLOCK_IDS.size) return json({ error: "Сначала заверши все блоки курса." }, 403);
 
   const form = await request.formData();
   const video = form.get("video");
   const durationSeconds = Math.round(Number(form.get("durationSeconds") || 0));
-  if (!(video instanceof File) || !video.type.startsWith("video/")) return json({ error: "Выберите видеофайл." }, 400);
+  if (!(video instanceof File) || !video.type.startsWith("video/")) return json({ error: "Выбери видеофайл." }, 400);
   if (video.size > 100 * 1024 * 1024) return json({ error: "Размер видео не должен превышать 100 МБ." }, 413);
   if (durationSeconds < 60 || durationSeconds > 130) return json({ error: "Длительность видеовизитки должна быть от 1 до 2 минут 10 секунд." }, 400);
 

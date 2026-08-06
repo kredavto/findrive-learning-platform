@@ -27,7 +27,7 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.doesNotMatch(page, /Текст урока пока закрыт/i);
   assert.doesNotMatch(page, /watchedLessons|videoWatched/i);
   assert.match(page, /Регистрация амбассадора/i);
-  assert.match(page, /Подтвердите почту/i);
+  assert.match(page, /Подтверди почту/i);
   assert.match(page, /Отправить письмо повторно/i);
   assert.match(page, /Я подтвердил почту/i);
   assert.match(page, /Добрый день, \{firstName\}/i);
@@ -70,7 +70,7 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(schema, /lessonProgress/i);
   assert.match(schema, /demoProgress/i);
   assert.match(worker, /demo_progress/i);
-  assert.match(worker, /Сначала завершите демонстрацию должности/i);
+  assert.match(worker, /Сначала заверши демонстрацию должности/i);
   assert.match(schema, /videoSubmissions/i);
   assert.match(page, /Видеовизитка/i);
   assert.match(page, /Дашборд обучения/i);
@@ -88,9 +88,11 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /Пройди небольшую демонстрацию должности, которая поможет тебе увидеть работу амбассадора от первого знакомства с компанией до выплаты вознаграждения\./i);
   assert.doesNotMatch(page, /от знакомства с компанией до отчётности и выплаты вознаграждения/i);
   assert.match(page, /Демонстрация должности &quot;Амбассадор&quot; \/ Партнер по привлечению инвестиций/i);
-  assert.match(page, /Познакомьтесь с компанией, функционалом позиции амбассадор и его ролью\. После этого Вам откроется основной курс обучения по привлечению инвестиций\./i);
-  assert.match(page, /Изучите демонстрацию должности, краткую информацию о компании и роли амбассадора/i);
-  assert.match(page, /Пройденный материал позволит Вам максимально эффективно вести переговоры с потенциальными инвесторами/i);
+  assert.match(page, /Познакомься с компанией, функционалом позиции амбассадор и его ролью\. После этого тебе откроется основной курс обучения по привлечению инвестиций\./i);
+  assert.match(page, /Изучи демонстрацию должности, краткую информацию о компании и роли амбассадора/i);
+  assert.match(page, /затем пройди небольшое обучение особенностям привлечения инвестиций в микрокредитную компанию/i);
+  assert.match(page, /Пройденный материал позволит тебе максимально эффективно вести переговоры с потенциальными инвесторами/i);
+  assert.match(page, /С какими сложностями вы сталкиваетесь при финансировании роста\?/i);
   assert.doesNotMatch(page, /Сначала поймите результат должности и рабочий маршрут/i);
   assert.match(styles, /Per-user, per-lesson dashboard detail/i);
   assert.match(layout, /Cormorant_Garamond/i);
@@ -104,6 +106,7 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(styles, /Mouse parallax atmosphere/i);
   assert.match(styles, /prefers-reduced-motion:reduce/i);
   assert.match(styles, /Readable locked lesson titles/i);
+  assert.match(styles, /sidebar \.brand-logo\{width:232px/i);
   assert.match(styles, /lesson-nav button:disabled\{color:#978e80;opacity:1\}/i);
   assert.match(page, /lesson-progress-track/i);
   assert.match(page, /persistLearningProgress\("demo", currentLesson\.id, 25\)/i);
