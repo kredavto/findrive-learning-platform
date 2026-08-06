@@ -94,6 +94,8 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /requestAnimationFrame/i);
   assert.match(styles, /Mouse parallax atmosphere/i);
   assert.match(styles, /prefers-reduced-motion:reduce/i);
+  assert.match(styles, /Readable locked lesson titles/i);
+  assert.match(styles, /lesson-nav button:disabled\{color:#978e80;opacity:1\}/i);
   assert.match(styles, /FINDRIVE presentation palette/i);
   assert.match(styles, /@media\(max-width:480px\)/i);
   assert.doesNotMatch(page, /Your site is taking shape/i);
