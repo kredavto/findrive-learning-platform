@@ -15,6 +15,11 @@ export const users = sqliteTable("users", {
   phone: text("phone"),
   contactEmail: text("contact_email"),
   registrationCompleted: integer("registration_completed", { mode: "boolean" }).notNull().default(false),
+  registeredAt: text("registered_at"),
+  emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
+  emailVerifiedAt: text("email_verified_at"),
+  emailVerificationTokenHash: text("email_verification_token_hash"),
+  emailVerificationExpiresAt: text("email_verification_expires_at"),
   role: text("role").notNull().default("ambassador"),
   accessStatus: text("access_status").notNull().default("training"),
   ...timestamps,
@@ -39,6 +44,54 @@ export const learningProgress = sqliteTable("learning_progress", {
   lastPosition: text("last_position"),
   ...timestamps,
 }, (table) => [uniqueIndex("progress_user_course_module_uq").on(table.userId, table.courseId, table.moduleNumber)]);
+
+export const lessonProgress = sqliteTable("lesson_progress", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull().references(() => users.id),
+  lessonId: text("lesson_id").notNull(),
+  completionPercent: integer("completion_percent").notNull().default(100),
+  completedAt: text("completed_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [uniqueIndex("lesson_progress_user_lesson_uq").on(table.userId, table.lessonId)]);
+
+export const demoProgress = sqliteTable("demo_progress", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull().references(() => users.id),
+  demoId: text("demo_id").notNull(),
+  completionPercent: integer("completion_percent").notNull().default(100),
+  completedAt: text("completed_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [uniqueIndex("demo_progress_user_demo_uq").on(table.userId, table.demoId)]);
+
+export const blockProgress = sqliteTable("block_progress", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull().references(() => users.id),
+  blockId: text("block_id").notNull(),
+  completedAt: text("completed_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [uniqueIndex("block_progress_user_block_uq").on(table.userId, table.blockId)]);
+
+export const videoSubmissions = sqliteTable("video_submissions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull().references(() => users.id),
+  objectKey: text("object_key").notNull(),
+  filename: text("filename").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  contentType: text("content_type").notNull(),
+  durationSeconds: integer("duration_seconds"),
+  submittedAt: text("submitted_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [uniqueIndex("video_submissions_user_uq").on(table.userId)]);
+
+export const emailNotifications = sqliteTable("email_notifications", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: text("user_id").notNull().references(() => users.id),
+  eventType: text("event_type").notNull(),
+  recipient: text("recipient").notNull(),
+  status: text("status").notNull().default("pending"),
+  providerMessageId: text("provider_message_id"),
+  errorMessage: text("error_message"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  sentAt: text("sent_at"),
+}, (table) => [uniqueIndex("email_notifications_user_event_uq").on(table.userId, table.eventType)]);
 
 export const approvals = sqliteTable("approvals", {
   id: integer("id").primaryKey({ autoIncrement: true }),
