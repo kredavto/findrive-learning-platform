@@ -31,24 +31,136 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type View = "dashboard" | "course" | "scripts" | "leads" | "payouts" | "documents" | "control";
 
-const modules = [
-  { n: 1, title: "О компании", time: "22 мин", status: "done", note: "Реквизиты и проверка в реестре" },
-  { n: 2, title: "Продукт и его риски", time: "35 мин", status: "active", note: "Займы, привлечение средств, ограничения МКК" },
-  { n: 3, title: "Кейсы клиентов", time: "18 мин", status: "locked", note: "Только подтверждённые и обезличенные данные" },
-  { n: 4, title: "Роль амбассадора", time: "20 мин", status: "locked", note: "Полномочия, границы, эскалация" },
-  { n: 5, title: "Рабочий процесс", time: "28 мин", status: "locked", note: "От контакта до фиксации результата" },
-  { n: 6, title: "Система мотивации", time: "24 мин", status: "locked", note: "Предварительный и подтверждённый расчёт" },
-  { n: 7, title: "Нормативы", time: "16 мин", status: "locked", note: "Качество вместо давления и спама" },
-  { n: 8, title: "Работа с клиентами", time: "45 мин", status: "locked", note: "Лестница Ханта, СПИН, этика и согласия" },
-  { n: 9, title: "Скрипты и возражения", time: "48 мин", status: "locked", note: "15 сценариев и техника «услышать — уточнить — ответить»" },
-  { n: 10, title: "Можно / нельзя", time: "25 мин", status: "locked", note: "Зелёная, жёлтая и красная зоны" },
-  { n: 11, title: "Персональные ссылки", time: "20 мин", status: "locked", note: "Согласия, UTM, журнал отправок" },
-  { n: 12, title: "Результаты и лиды", time: "18 мин", status: "locked", note: "Статусы без лишних персональных данных" },
-  { n: 13, title: "Вознаграждение", time: "20 мин", status: "locked", note: "11 шагов от атрибуции до выплаты" },
+type TrainingQuestion = {
+  id: string;
+  text: string;
+  options: { id: string; text: string }[];
+  correct: string;
+  explanation: string;
+};
+
+type TrainingLesson = {
+  id: string;
+  title: string;
+  duration: string;
+  intro: string;
+  callout: string;
+  points: string[];
+  conclusion: string;
+  question: TrainingQuestion;
+};
+
+type TrainingBlock = {
+  id: string;
+  title: string;
+  description: string;
+  lessons: TrainingLesson[];
+  finalQuestions: TrainingQuestion[];
+};
+
+const question = (id: string, text: string, options: [string, string][], correct: string, explanation: string): TrainingQuestion => ({
+  id,
+  text,
+  options: options.map(([optionId, optionText]) => ({ id: optionId, text: optionText })),
+  correct,
+  explanation,
+});
+
+const lesson = (id: string, title: string, duration: string, intro: string, callout: string, points: string[], conclusion: string, check: TrainingQuestion): TrainingLesson => ({
+  id, title, duration, intro, callout, points, conclusion, question: check,
+});
+
+const learningBlocks: TrainingBlock[] = [
+  {
+    id: "company",
+    title: "Знакомство с ФИНДРАЙВ",
+    description: "Компания, продукт, бизнес-модель и ключевые риски",
+    lessons: [
+      lesson("company-model", "Компания и бизнес-модель", "12 мин", "ФИНДРАЙВ — микрокредитная компания, работающая с займами под залог автомобилей. Амбассадор должен объяснять модель простыми словами и опираться только на подтверждённые источники.", "Начинайте не с цифр, а с понятного ответа: кто компания, какую задачу решает и где проверить её статус.", ["Проверяйте карточку компании в реестре Банка России.", "Разделяйте продукт для заёмщика и привлечение средств в бизнес.", "Не превращайте данные презентации в обещание результата."], "Доверие начинается с проверяемых фактов, а не с убедительных формулировок.", question("company-model-q", "С чего безопаснее начать рассказ о компании?", [["rate", "С заявленной доходности"], ["facts", "Со статуса, модели работы и проверяемых источников"]], "facts", "Верно: сначала идентификация компании и подтверждённые факты.")),
+      lesson("borrower-product", "Продукт для заёмщика", "14 мин", "Основной продукт — заём под залог автомобиля. Решение принимается после идентификации клиента, проверки документов и оценки автомобиля.", "Залог снижает риск, но не исключает просрочку, расходы на взыскание и изменение стоимости автомобиля.", ["Автомобиль может оставаться у заёмщика.", "Условия зависят от проверки и договора.", "Амбассадор не принимает кредитное решение."], "Говорите о процедуре, не обещая одобрение и конкретные условия до проверки.", question("borrower-product-q", "Что вправе обещать амбассадор заёмщику?", [["approval", "Гарантированное одобрение"], ["process", "Передачу заявки и объяснение процедуры"]], "process", "Верно: решение и условия определяет уполномоченный специалист.")),
+      lesson("business-funding", "Привлечение средств", "16 мин", "Юридические лица могут быть целевой аудиторией для привлечения средств в бизнес МКК. Для ИП требуется отдельная проверка статуса участника или учредителя компании.", "Не смешивайте договор финансирования бизнеса с банковским вкладом или займом для клиента.", ["Целевая аудитория — юридические лица.", "ИП проверяется как физическое лицо со специальным статусом.", "Условия определяются договором и согласуются специалистом."], "Амбассадор квалифицирует интерес и передаёт контакт, но не заключает договор от имени компании.", question("business-funding-q", "Кого можно сразу отнести к целевой аудитории?", [["individual", "Любое физическое лицо"], ["legal", "Юридическое лицо"]], "legal", "Верно: юридическое лицо — допустимый целевой клиент.")),
+      lesson("risk-documents", "Риски и документы", "15 мин", "Показатели презентации помогают понять модель, но требуют подтверждения актуальными документами. Любой вопрос о гарантиях, налогах или договоре передаётся специалисту.", "Формулировка «обеспечено залогом» не равна формулировке «возврат гарантирован».", ["Кредитный риск — возможное нарушение обязательств.", "Ликвидность залога ограничена сроками реализации.", "Юридические и операционные риски раскрываются честно."], "Лучший ответ на сложный вопрос — зафиксировать его и организовать разговор со специалистом.", question("risk-documents-q", "Что делать при вопросе о гарантии возврата?", [["guarantee", "Подтвердить гарантию залогом"], ["escalate", "Раскрыть отсутствие гарантии и передать специалисту"]], "escalate", "Верно: обеспечение снижает риск, но не даёт безусловной гарантии.")),
+    ],
+    finalQuestions: [
+      question("company-final-1", "Где проверяется статус компании?", [["slides", "Только в презентации"], ["cbr", "В реестре Банка России"]], "cbr", "Статус подтверждается официальным реестром."),
+      question("company-final-2", "Является ли залог гарантией возврата?", [["yes", "Да"], ["no", "Нет"]], "no", "Залог снижает, но не устраняет риск."),
+      question("company-final-3", "Кто согласовывает условия договора?", [["ambassador", "Амбассадор"], ["specialist", "Уполномоченный специалист"]], "specialist", "Амбассадор не принимает договорных решений."),
+    ],
+  },
+  {
+    id: "ambassador",
+    title: "Роль амбассадора",
+    description: "Границы роли, аудитория, рабочий процесс и передача лида",
+    lessons: [
+      lesson("role-boundaries", "Задачи и границы роли", "12 мин", "Амбассадор знакомит с компанией, выявляет интерес и организует контакт с уполномоченным менеджером.", "Представляйтесь амбассадором и не создавайте впечатление, что вы принимаете решения от имени МКК.", ["Раскрывайте свою роль в первом сообщении.", "Не подписывайте и не толкуйте договоры.", "Эскалируйте юридические и финансовые вопросы."], "Чёткая граница роли защищает клиента, компанию и самого амбассадора.", question("role-boundaries-q", "Может ли амбассадор согласовать ставку?", [["yes", "Да, если клиент готов"], ["no", "Нет, вопрос передаётся специалисту"]], "no", "Верно: условия не согласуются амбассадором.")),
+      lesson("target-audience", "Целевая аудитория", "10 мин", "Основная аудитория — руководители и представители юридических лиц, заинтересованные в финансировании бизнеса компании.", "До презентации определите тип клиента и полномочия собеседника.", ["Юридическое лицо — допустимая аудитория.", "ИП — только после проверки статуса участника МКК.", "Обычные физлица не являются целью кампании."], "Квалификация аудитории предшествует любому обсуждению условий.", question("target-audience-q", "Когда можно продолжить разговор с ИП?", [["always", "Всегда"], ["verified", "После подтверждения статуса участника или учредителя"]], "verified", "Верно: статус ИП нужно подтвердить до презентации.")),
+      lesson("workflow", "Рабочий процесс", "14 мин", "Последовательность работы: согласие на разговор, квалификация, краткая презентация, фиксация вопроса, передача менеджеру и отражение статуса.", "Каждый шаг должен иметь понятный результат и следующий согласованный шаг.", ["Не отправляйте материалы без согласия.", "Фиксируйте источник и статус контакта.", "Не собирайте лишние персональные данные."], "Хороший процесс — это управляемый маршрут, а не серия случайных сообщений.", question("workflow-q", "Что должно быть до отправки презентации?", [["consent", "Согласие на коммуникацию"], ["payment", "Предварительная оплата"]], "consent", "Верно: сначала согласие и проверка аудитории.")),
+      lesson("lead-handoff", "Передача лида", "12 мин", "Лид передаётся менеджеру после подтверждения интереса и согласия клиента на контакт.", "Передавайте только минимально необходимую информацию и зафиксированный вопрос клиента.", ["Укажите источник лида.", "Зафиксируйте согласие и удобный канал связи.", "Не добавляйте собственные обещания в комментарии."], "Качественная передача помогает менеджеру продолжить диалог без повторного допроса клиента.", question("lead-handoff-q", "Что обязательно при передаче лида?", [["consent", "Согласие клиента"], ["passport", "Копия паспорта"]], "consent", "Верно: согласие обязательно, лишние документы амбассадор не собирает.")),
+    ],
+    finalQuestions: [
+      question("ambassador-final-1", "Как амбассадор представляет свою роль?", [["manager", "Как менеджер, принимающий решение"], ["ambassador", "Как амбассадор, организующий контакт"]], "ambassador", "Роль должна быть раскрыта точно."),
+      question("ambassador-final-2", "Можно ли отправить материал без согласия?", [["yes", "Да"], ["no", "Нет"]], "no", "Сначала требуется согласие на коммуникацию."),
+      question("ambassador-final-3", "Что передаётся менеджеру?", [["minimum", "Минимальные данные, интерес и вопрос клиента"], ["everything", "Все доступные сведения о клиенте"]], "minimum", "Передаются только необходимые сведения."),
+    ],
+  },
+  {
+    id: "sales",
+    title: "Продажи",
+    description: "Десять последовательных уроков по модели из примера",
+    lessons: [
+      lesson("gratitude-marketing", "Маркетинг благодарности", "18 мин", "Самая устойчивая модель продаж — та, в которой клиент проходит понятный путь и сам принимает решение.", "Не продавайте. Дайте клиенту пройти путь, где следующий шаг становится очевидным.", ["Нет долгого обучения продажам.", "Быстрый цикл коммуникации вместо ожидания.", "Минимум стресса и возражений.", "Высокая конверсия в следующий шаг."], "Маркетинг благодарности — это помощь клиенту в принятии осознанного решения.", question("gratitude-q", "Как проще всего заключить сделку?", [["classic", "Вскрыть потребность → Результат → Оплата"], ["path", "Показал → Убедил → Дожал → Оплата"]], "classic", "Верно: сначала ценность и результат, без давления и «дожима».")),
+      lesson("sales-stages", "Этапы продаж", "20 мин", "Продажа состоит из последовательных переходов. Цель каждого этапа — не финальная оплата, а согласованный следующий шаг.", "Диагностируйте текущую готовность клиента по лестнице Ханта и не перепрыгивайте этапы.", ["Не видит задачи.", "Осознаёт задачу.", "Ищет подход.", "Сравнивает решения.", "Готов к действию."], "Лестница Ханта помогает выбрать уместную цель разговора.", question("sales-stages-q", "Что делать, если клиент только осознал задачу?", [["pitch", "Сразу требовать решение"], ["step", "Помочь перейти к поиску вариантов"]], "step", "Верно: один разговор — один реалистичный шаг.")),
+      lesson("lead-to-meeting", "Лид → Встреча", "16 мин", "На первом контакте важно получить разрешение продолжить и понять, есть ли релевантная задача.", "Короткое сообщение с раскрытием роли работает лучше длинной презентации без запроса.", ["Представьтесь.", "Объясните причину контакта.", "Задайте один квалифицирующий вопрос.", "Согласуйте время разговора."], "Встреча назначается после подтверждённого интереса, а не вместо него.", question("lead-to-meeting-q", "Главная цель первого контакта?", [["close", "Закрыть сделку"], ["permission", "Получить согласие на следующий разговор"]], "permission", "Верно: сначала разрешение и интерес.")),
+      lesson("meeting-to-discovery", "Встреча → Выяснение", "22 мин", "СПИН-продажи заменяют монолог системой вопросов: ситуационных, проблемных, извлекающих и направляющих.", "Не превращайте СПИН в допрос: задавайте только вопросы, которые помогают понять решение.", ["Ситуационные — контекст.", "Проблемные — затруднение.", "Извлекающие — последствия.", "Направляющие — ценность решения."], "Хорошая диагностика позволяет клиенту самому сформулировать значимость задачи.", question("meeting-to-discovery-q", "Какой вопрос является извлекающим?", [["people", "Сколько сотрудников в компании?"], ["impact", "Как нехватка средств влияет на сроки контрактов?"]], "impact", "Верно: извлекающий вопрос раскрывает последствия проблемы.")),
+      lesson("discovery-to-payment", "Выяснение → Оплата", "18 мин", "После диагностики менеджер связывает подтверждённую задачу клиента с подходящим решением и документами.", "Амбассадор не закрывает оплату — он передаёт квалифицированный запрос специалисту.", ["Кратко резюмируйте задачу.", "Проверьте понимание клиента.", "Предложите разговор с менеджером.", "Зафиксируйте следующий шаг."], "Переход к договору возможен только после проверки и согласования условий.", question("discovery-to-payment-q", "Кто согласовывает переход к договору?", [["ambassador", "Амбассадор"], ["manager", "Уполномоченный менеджер"]], "manager", "Верно: договорный этап ведёт специалист.")),
+      lesson("payment-to-renewal", "Оплата → Пролонгация", "14 мин", "После сделки важно сохранить качество сопровождения: не пропадать, фиксировать вопросы и вовремя передавать их ответственному.", "Лояльность появляется из предсказуемого сервиса, а не из частоты рекламных сообщений.", ["Подтвердите завершение этапа.", "Сообщите канал поддержки.", "Не обещайте будущие условия.", "Возвращайтесь к контакту только по согласованному поводу."], "Пролонгация — результат хорошего опыта, а не давления после оплаты.", question("payment-to-renewal-q", "Что поддерживает лояльность после сделки?", [["spam", "Частые предложения"], ["service", "Предсказуемое сопровождение"]], "service", "Верно: ценность создаёт сервис и соблюдение договорённостей.")),
+      lesson("sales-principles", "Важные принципы", "12 мин", "Этичные продажи основаны на ясности, добровольности решения и подтверждённых фактах.", "Ни одна конверсия не оправдывает скрытие риска или давление.", ["Слушайте больше, чем говорите.", "Отделяйте факт от предположения.", "Уважайте отказ.", "Фиксируйте согласованный следующий шаг."], "Доверие — главный актив амбассадора.", question("sales-principles-q", "Что важнее краткосрочной конверсии?", [["trust", "Доверие и добровольность решения"], ["urgency", "Искусственная срочность"]], "trust", "Верно: долгосрочное доверие важнее давления.")),
+      lesson("objections", "Ответы на возражения", "20 мин", "Возражение — запрос на ясность. Техника: выслушать, признать, уточнить, ответить фактом и проверить понимание.", "Не спорьте и не обесценивайте сомнение клиента.", ["Отделите причину от отговорки.", "Уточните, что именно вызывает сомнение.", "Ответьте подтверждённым фактом.", "Передайте сложный вопрос специалисту."], "Работа с возражением заканчивается проверкой: стало ли понятнее и нужен ли следующий шаг.", question("objections-q", "Как безопасно отвечать на возражение?", [["argue", "Доказывать, что клиент неправ"], ["clarify", "Признать вопрос, уточнить и ответить фактом"]], "clarify", "Верно: сначала понимание, затем подтверждённый ответ.")),
+      lesson("partner-question", "Вопрос Партнёра", "14 мин", "Партнёр может задавать вопросы о доходности, договоре, налогах, обеспечении и сроках. Амбассадор фиксирует вопрос и определяет маршрут ответа.", "Не импровизируйте там, где требуется документ или профессиональная консультация.", ["Факт из утверждённого материала — можно сообщить со ссылкой.", "Условие договора — передать менеджеру.", "Налоговый вопрос — передать профильному специалисту.", "Гарантия результата — остановиться и раскрыть риск."], "Сильный ответ может звучать как честное «уточню и вернусь с подтверждением».", question("partner-question-q", "Что делать с налоговым вопросом партнёра?", [["guess", "Ответить по опыту"], ["expert", "Передать профильному специалисту"]], "expert", "Верно: налоговые вопросы требуют профильного ответа.")),
+      lesson("sales-materials", "Доп. материалы", "10 мин", "Перед использованием проверьте статус презентации, скрипта и документа в реестре источников.", "Устаревший материал нельзя отправлять, даже если он выглядит убедительно.", ["Проверьте дату и версию.", "Используйте только утверждённый файл.", "Не редактируйте условия самостоятельно.", "Сохраняйте ссылку на источник."], "Актуальность материала — часть качества и безопасности коммуникации.", question("sales-materials-q", "Можно ли использовать старую презентацию?", [["yes", "Да, если цифры привлекательны"], ["approved", "Только если версия подтверждена как актуальная"]], "approved", "Верно: используется только актуальная утверждённая версия.")),
+    ],
+    finalQuestions: [
+      question("sales-final-1", "На каком этапе уместны извлекающие вопросы СПИН?", [["diagnosis", "При выяснении последствий проблемы"], ["payment", "После оплаты"]], "diagnosis", "Извлекающие вопросы относятся к диагностике."),
+      question("sales-final-2", "Первый шаг работы с возражением?", [["listen", "Выслушать"], ["discount", "Предложить скидку"]], "listen", "Сначала нужно понять клиента."),
+      question("sales-final-3", "Что завершает каждый этап продажи?", [["next", "Согласованный следующий шаг"], ["pressure", "Усиление давления"]], "next", "Этап завершается понятной договорённостью."),
+    ],
+  },
+  {
+    id: "tools",
+    title: "Инструменты и мотивация",
+    description: "Ссылки, лиды, статусы и расчёт вознаграждения",
+    lessons: [
+      lesson("personal-link", "Персональная ссылка", "10 мин", "Персональная ссылка связывает обращение с амбассадором и помогает корректно атрибутировать результат.", "Отправляйте ссылку только после согласия и только подходящей аудитории.", ["Не изменяйте код ссылки.", "Не публикуйте её в массовых рассылках.", "Фиксируйте канал и дату отправки."], "Точная атрибуция начинается с корректного использования ссылки.", question("personal-link-q", "Когда отправляется персональная ссылка?", [["mass", "В массовой рассылке"], ["consent", "После согласия целевого клиента"]], "consent", "Верно: ссылка отправляется адресно и с согласия.")),
+      lesson("crm-statuses", "CRM и статусы", "14 мин", "Статусы отражают движение лида без раскрытия лишних данных: новый, квалифицирован, передан, на проверке, завершён или дубль.", "Статус — это факт процесса, а не оценка клиента.", ["Обновляйте статус после события.", "Не храните чувствительные документы.", "Дубли не учитываются повторно."], "Чистые статусы дают честную аналитику и справедливую атрибуцию.", question("crm-statuses-q", "Что фиксирует статус лида?", [["process", "Факт этапа процесса"], ["opinion", "Личное мнение амбассадора"]], "process", "Верно: статус отражает событие процесса.")),
+      lesson("reward", "Вознаграждение", "15 мин", "Предварительный расчёт помогает ориентироваться, но обязательство к выплате возникает только после подтверждения условий программы.", "Не обещайте себе или клиенту выплату до проверки атрибуции и результата.", ["Проверяется источник лида.", "Исключаются дубли.", "Подтверждается целевое действие.", "Фиксируется итоговая сумма и дата."], "Прозрачный расчёт строится на событиях, а не на ожиданиях.", question("reward-q", "Когда сумма становится подтверждённой?", [["lead", "После создания лида"], ["verified", "После проверки условий программы"]], "verified", "Верно: предварительная сумма не равна подтверждённой.")),
+      lesson("reporting", "Отчётность", "10 мин", "Амбассадор видит только необходимые ему данные: источник, статус, ответственного и состояние расчёта.", "Доступ к данным ограничивается ролью и задачей пользователя.", ["Не выгружайте клиентские данные без необходимости.", "Используйте системные отчёты.", "Сообщайте об ошибках атрибуции через поддержку."], "Минимизация данных снижает риск и упрощает работу.", question("reporting-q", "Какие данные нужны амбассадору?", [["all", "Все документы клиента"], ["minimum", "Только необходимые статусы и расчёты"]], "minimum", "Верно: доступ ограничивается необходимым минимумом.")),
+    ],
+    finalQuestions: [
+      question("tools-final-1", "Что обязательно перед отправкой ссылки?", [["consent", "Согласие клиента"], ["public", "Публичная публикация"]], "consent", "Ссылка отправляется после согласия."),
+      question("tools-final-2", "Является ли предварительный расчёт обещанием выплаты?", [["yes", "Да"], ["no", "Нет"]], "no", "Он требует проверки и подтверждения."),
+      question("tools-final-3", "Какой принцип применяется к данным?", [["minimum", "Необходимый минимум"], ["maximum", "Собирать всё доступное"]], "minimum", "Собираются только нужные данные."),
+    ],
+  },
+  {
+    id: "compliance",
+    title: "Комплаенс и допуск",
+    description: "Допустимые формулировки, согласия и итоговая аттестация",
+    lessons: [
+      lesson("green-yellow-red", "Можно / нельзя", "15 мин", "Матрица коммуникации делит формулировки на зелёную, жёлтую и красную зоны.", "Красная зона означает остановку диалога и передачу вопроса специалисту.", ["Зелёная: подтверждённые факты и описание роли.", "Жёлтая: цифры и условия только по утверждённому материалу.", "Красная: гарантии, давление и скрытие рисков."], "Перед отправкой сообщения определите его зону.", question("zones-q", "К какой зоне относится гарантия дохода?", [["green", "Зелёная"], ["red", "Красная"]], "red", "Верно: обещание дохода недопустимо.")),
+      lesson("ads-consent", "Реклама и согласия", "12 мин", "Рекламная коммуникация начинается после согласия адресата и прекращается после отказа.", "Отказ не нужно преодолевать — его нужно уважать и фиксировать.", ["Не используйте массовый спам.", "Храните подтверждение согласия.", "После отказа не продолжайте рекламный контакт."], "Добровольность контакта — обязательное условие коммуникации.", question("ads-consent-q", "Что делать после отказа?", [["retry", "Продолжить убеждать"], ["stop", "Прекратить рекламную коммуникацию"]], "stop", "Верно: отказ завершает рекламный диалог.")),
+      lesson("legal-ip", "Юрлица и ИП", "14 мин", "Юридические лица — целевая аудитория. ИП рассматривается только после подтверждения его статуса учредителя или участника МКК.", "Организационная форма клиента проверяется до обсуждения продукта.", ["Юрлицо — допустимый маршрут.", "ИП — маршрут после проверки статуса.", "Физлицо без статуса — нецелевая аудитория."], "Правильная классификация клиента открывает правильный сценарий работы.", question("legal-ip-q", "Можно ли работать с ИП без проверки статуса?", [["yes", "Да"], ["no", "Нет"]], "no", "Верно: сначала подтверждается специальный статус.")),
+      lesson("escalation", "Эскалация вопросов", "10 мин", "Сложные вопросы не остаются без ответа: они фиксируются, получают ответственного и срок возврата к клиенту.", "Эскалация — профессиональный инструмент, а не признак слабости.", ["Запишите вопрос дословно.", "Определите профиль специалиста.", "Сообщите клиенту следующий шаг.", "Вернитесь с подтверждённым ответом."], "Надёжность проявляется в качестве возврата с ответом.", question("escalation-q", "Что сообщить клиенту при эскалации?", [["nothing", "Ничего"], ["next", "Кому передан вопрос и когда вернётесь"]], "next", "Верно: клиенту нужен прозрачный следующий шаг.")),
+    ],
+    finalQuestions: [
+      question("compliance-final-1", "Что делать с обещанием гарантированного дохода?", [["publish", "Использовать в презентации"], ["stop", "Остановить и заменить подтверждённой формулировкой"]], "stop", "Гарантии относятся к красной зоне."),
+      question("compliance-final-2", "Что означает отказ клиента?", [["finish", "Коммуникация прекращается"], ["objection", "Нужно усилить давление"]], "finish", "Отказ необходимо уважать."),
+      question("compliance-final-3", "Кому адресуется кампания?", [["legal", "Юридическим лицам"], ["everyone", "Всем физическим лицам"]], "legal", "Целевая аудитория — юридические лица."),
+    ],
+  },
 ];
 
 const scripts = [
@@ -141,7 +253,6 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [scriptIndex, setScriptIndex] = useState(0);
   const [quizAnswer, setQuizAnswer] = useState<string | null>(null);
-  const [lessonOpen, setLessonOpen] = useState(false);
 
   const filteredScripts = useMemo(() => scripts.filter((item) => `${item.title} ${item.tag} ${item.safe}`.toLowerCase().includes(query.toLowerCase())), [query]);
 
@@ -192,8 +303,8 @@ export default function Home() {
         </header>
 
         <div className="content">
-          {view === "dashboard" && <Dashboard onNavigate={navigate} onLesson={() => setLessonOpen(true)} copied={copied} onCopy={copyText} />}
-          {view === "course" && <Course onLesson={() => setLessonOpen(true)} />}
+          {view === "dashboard" && <Dashboard onNavigate={navigate} onLesson={() => navigate("course")} copied={copied} onCopy={copyText} />}
+          {view === "course" && <Course />}
           {view === "scripts" && <Scripts query={query} setQuery={setQuery} filtered={filteredScripts} active={scriptIndex} setActive={setScriptIndex} copied={copied} onCopy={copyText} />}
           {view === "leads" && <Leads />}
           {view === "payouts" && <Payouts />}
@@ -202,7 +313,6 @@ export default function Home() {
         </div>
       </main>
 
-      {lessonOpen && <LessonModal onClose={() => setLessonOpen(false)} />}
     </div>
   );
 }
@@ -248,25 +358,172 @@ function Dashboard({ onNavigate, onLesson, copied, onCopy }: { onNavigate: (v: V
   </>;
 }
 
-function Course({ onLesson }: { onLesson: () => void }) {
-  return <><section className="page-heading"><div><Badge tone="date">Курс · 1 из 13</Badge><h1>Амбассадор / Партнёр</h1><p>Последовательная программа с практикой, тестами и обязательным комплаенсом.</p></div><div className="heading-stat"><strong>18%</strong><span>2 ч 42 мин осталось</span></div></section>
-    <div className="course-layout"><div className="course-main-column"><section className="card course-list"><div className="section-head"><div><h2>Архитектура курса</h2><p>Каждый модуль открывается после предыдущего</p></div><Badge tone="neutral">≈ 5 ч 45 мин</Badge></div>{modules.map((m) => <button key={m.n} className={`module-row ${m.status}`} onClick={m.status === "active" ? onLesson : undefined} disabled={m.status === "locked"}><span className="module-number">{m.status === "done" ? <Check size={18}/> : m.status === "locked" ? <LockKeyhole size={15}/> : m.n}</span><span className="module-copy"><strong>{m.title}</strong><small>{m.note}</small></span><span className="module-time"><Clock3 size={14}/>{m.time}</span><ChevronRight size={18}/></button>)}</section><SalesLab /></div>
-    <aside className="course-aside"><article className="card"><h3>Итоговая аттестация</h3><div className="score"><strong>80%</strong><span>проходной балл</span></div><ul className="check-list"><li><CheckCircle2/>Не менее 25 вопросов</li><li><CheckCircle2/>Комплаенс — 100%</li><li><CheckCircle2/>Симуляция диалога</li></ul></article><article className="card"><h3>Путь к допуску</h3><ol className="timeline"><li className="done">Основы компании</li><li className="active">Продукт и риски</li><li>Практические задания</li><li>Аттестация</li><li>Принятие правил</li></ol></article><article className="card presentation-card"><div className="card-kicker"><span><FileText/> Данные презентации</span><Badge tone="review">Внутренний источник</Badge></div><div className="presentation-metrics">{presentationMetrics.map(m=><div key={m.label}><strong>{m.value}</strong><span>{m.label}</span><small>{m.slide}</small></div>)}</div><p>Цифры включены как заявленные компанией и не используются как обещания без подтверждающих документов.</p></article></aside></div></>;
-}
+function Course() {
+  const [blockIndex, setBlockIndex] = useState(0);
+  const [lessonIndex, setLessonIndex] = useState(0);
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [completedBlocks, setCompletedBlocks] = useState<string[]>([]);
+  const [lessonAnswer, setLessonAnswer] = useState("");
+  const [finalAnswers, setFinalAnswers] = useState<Record<string, string>>({});
+  const [videoUrls, setVideoUrls] = useState<Record<string, string>>({});
+  const [videoNames, setVideoNames] = useState<Record<string, string>>({});
+  const [watchedLessons, setWatchedLessons] = useState<string[]>([]);
+  const [videoError, setVideoError] = useState("");
 
-function SalesLab() {
-  const [answers, setAnswers] = useState<Record<string,string>>({});
-  const tests = {
-    hunt: { correct: "step", options: [{id:"pitch",text:"Сразу отправить презентацию с условиями"},{id:"step",text:"Помочь сделать следующий шаг: от осознания задачи к поиску решения"},{id:"pressure",text:"Создать срочность и добиться встречи"}] },
-    spin: { correct: "implication", options: [{id:"situation",text:"Сколько сотрудников работает в компании?"},{id:"implication",text:"Как нехватка оборотного капитала влияет на сроки и контракты?"},{id:"offer",text:"Готовы подписать договор сегодня?"}] },
-    objection: { correct: "clarify", options: [{id:"argue",text:"Доказывать, что возражение неверно"},{id:"discount",text:"Сразу предложить уступку"},{id:"clarify",text:"Признать вопрос, уточнить причину и ответить подтверждённым фактом"}] },
+  const block = learningBlocks[blockIndex];
+  const isFinalTest = lessonIndex === block.lessons.length;
+  const currentLesson = isFinalTest ? null : block.lessons[lessonIndex];
+  const finishedInBlock = block.lessons.filter((item) => completedLessons.includes(item.id)).length;
+  const allLessonsFinished = finishedInBlock === block.lessons.length;
+  const currentBlockCompleted = completedBlocks.includes(block.id);
+  const totalSteps = learningBlocks.reduce((sum, item) => sum + item.lessons.length + 1, 0);
+  const completedSteps = completedLessons.length + completedBlocks.length;
+  const overallProgress = Math.round((completedSteps / totalSteps) * 100);
+
+  const blockUnlocked = (index: number) => index === 0 || learningBlocks.slice(0, index).every((item) => completedBlocks.includes(item.id));
+  const lessonUnlocked = (index: number) => index === 0 || block.lessons.slice(0, index).every((item) => completedLessons.includes(item.id));
+  const finalPassed = block.finalQuestions.every((item) => finalAnswers[item.id] === item.correct);
+  const lessonCompleted = currentLesson ? completedLessons.includes(currentLesson.id) : false;
+  const videoWatched = currentLesson ? watchedLessons.includes(currentLesson.id) || lessonCompleted : false;
+  const lessonAnswerCorrect = currentLesson ? lessonAnswer === currentLesson.question.correct : false;
+  const canContinueLesson = lessonCompleted || lessonAnswerCorrect;
+
+  useEffect(() => {
+    setLessonAnswer("");
+    setVideoError("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [blockIndex, lessonIndex]);
+
+  const openBlock = (index: number) => {
+    if (!blockUnlocked(index)) return;
+    const selected = learningBlocks[index];
+    const nextLesson = selected.lessons.findIndex((item) => !completedLessons.includes(item.id));
+    setBlockIndex(index);
+    setLessonIndex(nextLesson === -1 ? selected.lessons.length : nextLesson);
+    setFinalAnswers({});
   };
-  const quiz = (key: keyof typeof tests, question: string) => <div className="micro-quiz"><strong>{question}</strong><div>{tests[key].options.map(o=><button key={o.id} className={answers[key]===o.id?"selected":""} onClick={()=>setAnswers({...answers,[key]:o.id})}>{o.text}</button>)}</div>{answers[key] && <p className={answers[key]===tests[key].correct?"quiz-ok":"quiz-no"}>{answers[key]===tests[key].correct?"Верно. Такой ответ сохраняет этику и ведёт клиента по его готовности.":"Попробуйте ещё раз: давление и преждевременная презентация снижают доверие."}</p>}</div>;
-  return <section className="card sales-lab"><div className="section-head"><div><Badge tone="date">Практикум продаж</Badge><h2>Техники без давления</h2><p>Инструменты адаптированы для финансовой сферы и работы с юрлицами</p></div><Badge tone="active">3 мини-теста</Badge></div>
-    <article className="sales-section"><div className="sales-title"><span>01</span><div><h3>Лестница Ханта</h3><p>Коммуникация должна соответствовать уровню готовности клиента.</p></div></div><div className="hunt-steps">{["Не видит задачи","Осознаёт задачу","Ищет подход","Сравнивает решения","Готов к действию"].map((x,i)=><div key={x}><span>{i+1}</span><small>{x}</small></div>)}</div><p className="theory-note">Не пытайтесь перепрыгнуть лестницу. На первом контакте цель — не «закрыть сделку», а понять текущий этап и помочь перейти на один шаг дальше.</p>{quiz("hunt","Что делать, если контакт только начал осознавать потребность?")}</article>
-    <article className="sales-section"><div className="sales-title"><span>02</span><div><h3>СПИН-продажи</h3><p>Диагностика через вопросы вместо монолога о продукте.</p></div></div><div className="spin-grid"><div><b>С</b><strong>Ситуационные</strong><small>Кратко понять контекст</small></div><div><b>П</b><strong>Проблемные</strong><small>Выявить затруднение</small></div><div><b>И</b><strong>Извлекающие</strong><small>Понять последствия</small></div><div><b>Н</b><strong>Направляющие</strong><small>Уточнить ценность решения</small></div></div><p className="theory-note">Не задавайте вопросы, ответы на которые можно получить заранее. Не превращайте СПИН в допрос и не подводите клиента к обещаниям результата.</p>{quiz("spin","Какой вопрос относится к извлекающим?")}</article>
-    <article className="sales-section"><div className="sales-title"><span>03</span><div><h3>Работа с возражениями</h3><p>Возражение — запрос на ясность, а не приглашение спорить.</p></div></div><div className="objection-flow">{["Выслушать","Признать","Уточнить","Ответить фактом","Проверить понимание"].map((x,i)=><div key={x}><span>{i+1}</span><strong>{x}</strong></div>)}</div><ul className="sales-skills"><li>Отделяйте реальную причину от вежливой отговорки.</li><li>Используйте только проверенные доказательства и документы.</li><li>На юридическом, налоговом или риск-вопросе передавайте специалисту.</li><li>После отказа прекращайте рекламную коммуникацию.</li></ul>{quiz("objection","Как безопасно отвечать на возражение?")}</article>
-  </section>;
+
+  const openLesson = (index: number) => {
+    const available = index < block.lessons.length ? lessonUnlocked(index) : allLessonsFinished;
+    if (!available) return;
+    setLessonIndex(index);
+  };
+
+  const uploadVideo = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!currentLesson) return;
+    const file = event.currentTarget.files?.[0];
+    if (!file) return;
+    const isMp4 = file.type === "video/mp4" || file.name.toLowerCase().endsWith(".mp4");
+    if (!isMp4) {
+      setVideoError("Поддерживается только видео в формате MP4.");
+      event.currentTarget.value = "";
+      return;
+    }
+    const previousUrl = videoUrls[currentLesson.id];
+    if (previousUrl) URL.revokeObjectURL(previousUrl);
+    const nextUrl = URL.createObjectURL(file);
+    setVideoUrls((current) => ({ ...current, [currentLesson.id]: nextUrl }));
+    setVideoNames((current) => ({ ...current, [currentLesson.id]: file.name }));
+    setWatchedLessons((current) => current.filter((id) => id !== currentLesson.id));
+    setVideoError("");
+  };
+
+  const completeLesson = () => {
+    if (!currentLesson || !canContinueLesson) return;
+    setCompletedLessons((current) => current.includes(currentLesson.id) ? current : [...current, currentLesson.id]);
+    setLessonAnswer("");
+    setLessonIndex(Math.min(lessonIndex + 1, block.lessons.length));
+  };
+
+  const completeBlock = () => {
+    if (!finalPassed && !currentBlockCompleted) return;
+    setCompletedBlocks((current) => current.includes(block.id) ? current : [...current, block.id]);
+    if (blockIndex < learningBlocks.length - 1) {
+      setBlockIndex(blockIndex + 1);
+      setLessonIndex(0);
+      setFinalAnswers({});
+    }
+  };
+
+  return <>
+    <section className="page-heading learning-heading">
+      <div><Badge tone="date">Программа амбассадора</Badge><h1>Последовательное обучение</h1><p>Урок → видео → текст → проверка. Следующий блок откроется только после итогового теста.</p></div>
+      <div className="heading-stat"><strong>{overallProgress}%</strong><span>{completedSteps} из {totalSteps} шагов</span></div>
+    </section>
+
+    <nav className="learning-blocks" aria-label="Блоки обучения">
+      {learningBlocks.map((item, index) => {
+        const unlocked = blockUnlocked(index);
+        const done = completedBlocks.includes(item.id);
+        return <button key={item.id} className={`${index === blockIndex ? "active" : ""} ${done ? "done" : ""}`} disabled={!unlocked} onClick={() => openBlock(index)}>
+          <span>{done ? <Check size={16}/> : unlocked ? index + 1 : <LockKeyhole size={14}/>}</span>
+          <div><strong>{item.title}</strong><small>{done ? "Блок завершён" : unlocked ? "Доступен" : "Откроется позже"}</small></div>
+        </button>;
+      })}
+    </nav>
+
+    <section className="learning-workspace card">
+      <aside className="lesson-sidebar">
+        <div className="lesson-sidebar-head"><small>Блок {blockIndex + 1}</small><h2>{block.title}</h2><p>{block.description}</p></div>
+        <div className="lesson-nav">
+          {block.lessons.map((item, index) => {
+            const unlocked = lessonUnlocked(index);
+            const done = completedLessons.includes(item.id);
+            return <button key={item.id} className={`${lessonIndex === index ? "active" : ""} ${done ? "done" : ""}`} disabled={!unlocked} onClick={() => openLesson(index)}>
+              <span>{done ? <Check size={13}/> : unlocked ? index + 1 : <LockKeyhole size={12}/>}</span><strong>{item.title}</strong>
+            </button>;
+          })}
+          <button className={`${isFinalTest ? "active" : ""} ${currentBlockCompleted ? "done" : ""}`} disabled={!allLessonsFinished} onClick={() => openLesson(block.lessons.length)}>
+            <span>{currentBlockCompleted ? <Check size={13}/> : allLessonsFinished ? <ClipboardCheck size={13}/> : <LockKeyhole size={12}/>}</span><strong>Итоговый тест блока</strong>
+          </button>
+        </div>
+        <div className="lesson-sidebar-progress"><div><span style={{width:`${Math.round((finishedInBlock / block.lessons.length) * 100)}%`}}/></div><small>Прогресс</small><strong>{finishedInBlock}/{block.lessons.length}</strong></div>
+      </aside>
+
+      <div className="lesson-stage">
+        {currentLesson ? <>
+          <header className="lesson-stage-head"><small>Урок {lessonIndex + 1} из {block.lessons.length}</small><h2>{currentLesson.title}</h2><span><Clock3 size={14}/>{currentLesson.duration}</span></header>
+
+          <section className="video-learning-card" aria-label={`Видео к уроку ${currentLesson.title}`}>
+            {videoUrls[currentLesson.id] ? <>
+              <video key={videoUrls[currentLesson.id]} controls preload="metadata" onEnded={() => setWatchedLessons((current) => current.includes(currentLesson.id) ? current : [...current, currentLesson.id])}>
+                <source src={videoUrls[currentLesson.id]} type="video/mp4" />
+                Ваш браузер не поддерживает видео MP4.
+              </video>
+              <div className="video-meta"><div><strong>{videoNames[currentLesson.id]}</strong><small>{videoWatched ? "Видео просмотрено — текст открыт" : "Досмотрите видео до конца, чтобы открыть текст"}</small></div><label className="video-replace">Заменить MP4<input type="file" accept="video/mp4,.mp4" onChange={uploadVideo}/></label></div>
+            </> : <label className="video-upload-zone">
+              <span><BookOpen size={28}/></span><strong>Загрузите видео к уроку</strong><small>Одно видео в формате MP4. После просмотра откроется текстовая часть.</small><em>Выбрать MP4</em><input type="file" accept="video/mp4,.mp4" onChange={uploadVideo}/>
+            </label>}
+            {videoError && <p className="video-error" role="alert">{videoError}</p>}
+          </section>
+
+          {!videoWatched ? <section className="lesson-text-gate"><LockKeyhole size={24}/><div><strong>Текст урока пока закрыт</strong><p>Сначала загрузите и досмотрите короткое видео до конца.</p></div></section> : <div className="lesson-reading">
+            <p className="lesson-intro">{currentLesson.intro}</p>
+            <aside className="green-callout"><CheckCircle2 size={20}/><p>{currentLesson.callout}</p></aside>
+            <div className="lesson-points"><h3>Ключевые пункты:</h3><ul>{currentLesson.points.map((point) => <li key={point}><Check size={15}/><span>{point}</span></li>)}</ul></div>
+            <aside className="green-callout strong"><CheckCircle2 size={20}/><p>{currentLesson.conclusion}</p></aside>
+
+            <section className="lesson-question-card">
+              <h3>{currentLesson.question.text}</h3>
+              <div>{currentLesson.question.options.map((option) => <button key={option.id} className={lessonAnswer === option.id ? "selected" : ""} onClick={() => setLessonAnswer(option.id)}><span>{lessonAnswer === option.id ? <Check size={13}/> : null}</span>{option.text}</button>)}</div>
+              {lessonAnswer && <p className={lessonAnswerCorrect ? "answer-good" : "answer-bad"}>{lessonAnswerCorrect ? currentLesson.question.explanation : "Пока неверно. Вернитесь к ключевым пунктам и попробуйте ещё раз."}</p>}
+            </section>
+
+            <footer className="lesson-next"><button className="primary-button" disabled={!canContinueLesson} onClick={completeLesson}>{lessonIndex === block.lessons.length - 1 ? "Перейти к тесту блока" : "Следующий урок"}<ChevronRight size={17}/></button><small>{lessonIndex < block.lessons.length - 1 ? `Следующий урок: ${block.lessons[lessonIndex + 1].title}` : "После урока откроется итоговый тест блока"}</small></footer>
+          </div>}
+        </> : <section className="block-final-test">
+          <Badge tone={currentBlockCompleted ? "active" : "review"}>{currentBlockCompleted ? "Блок завершён" : "Итоговый тест"}</Badge>
+          <h2>{block.title}</h2><p>Ответьте правильно на все вопросы. Только после этого откроется следующий блок.</p>
+          <div className="final-question-list">{block.finalQuestions.map((item, index) => {
+            const selected = finalAnswers[item.id];
+            const correct = selected === item.correct;
+            return <article key={item.id}><small>Вопрос {index + 1} из {block.finalQuestions.length}</small><h3>{item.text}</h3><div>{item.options.map((option) => <button key={option.id} className={selected === option.id ? "selected" : ""} onClick={() => setFinalAnswers((current) => ({...current,[item.id]:option.id}))}><span>{selected === option.id ? <Check size={13}/> : null}</span>{option.text}</button>)}</div>{selected && <p className={correct ? "answer-good" : "answer-bad"}>{correct ? item.explanation : "Неверный ответ. Повторите уроки блока и попробуйте ещё раз."}</p>}</article>;
+          })}</div>
+          {currentBlockCompleted && blockIndex === learningBlocks.length - 1 ? <div className="course-complete"><Award size={28}/><div><strong>Программа завершена</strong><p>Все блоки и тесты пройдены. Доступ к итоговой аттестации открыт.</p></div></div> : <footer className="lesson-next"><button className="primary-button" disabled={!finalPassed && !currentBlockCompleted} onClick={completeBlock}>{blockIndex === learningBlocks.length - 1 ? "Завершить программу" : "Завершить блок и открыть следующий"}<ChevronRight size={17}/></button><small>Проходной результат: 100%</small></footer>}
+        </section>}
+      </div>
+    </section>
+  </>;
 }
 
 function Scripts({ query, setQuery, filtered, active, setActive, copied, onCopy }: { query: string; setQuery: (v:string)=>void; filtered: typeof scripts; active:number; setActive:(v:number)=>void; copied:string; onCopy:(t:string,k:string)=>void }) {

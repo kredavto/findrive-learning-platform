@@ -11,9 +11,12 @@ test("contains the FINDRIVE Academy learning experience", async () => {
 
   assert.match(layout, /ФИНДРАЙВ Академия/i);
   assert.match(page, /Лестница Ханта/i);
-  assert.match(page, /SPIN/i);
-  assert.match(page, /Работа с возражениями/i);
+  assert.match(page, /СПИН/i);
+  assert.match(page, /Ответы на возражения/i);
   assert.match(page, /Юридические лица/i);
+  assert.match(page, /accept="video\/mp4,.mp4"/i);
+  assert.match(page, /Следующий блок откроется только после итогового теста/i);
+  assert.match(styles, /green-callout/i);
   assert.match(styles, /FINDRIVE presentation palette/i);
   assert.doesNotMatch(page, /Your site is taking shape/i);
 });
