@@ -72,6 +72,9 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /Видеовизитка/i);
   assert.match(page, /Дашборд обучения/i);
   assert.match(page, /Полезные материалы для работы с клиентами/i);
+  assert.match(page, /Учредительные документы компании/i);
+  assert.match(page, /Карточка ООО МКК «ФИНДРАЙВ»/i);
+  assert.match(page, /findrive-company-card\.docx/i);
   assert.match(page, /Следующий блок откроется только после итогового теста/i);
   assert.match(styles, /green-callout/i);
   assert.match(styles, /FINDRIVE presentation palette/i);
@@ -85,6 +88,7 @@ test("contains the FINDRIVE Academy learning experience", async () => {
     "findrive-founder-loan-agreement-template.docx",
     "findrive-presentation-desktop.pdf",
     "findrive-presentation-mobile.pdf",
+    "findrive-company-card.docx",
   ];
   for (const material of materials) {
     const info = await stat(new URL(`../public/materials/${material}`, import.meta.url));
