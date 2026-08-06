@@ -445,6 +445,38 @@ export default function Home() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const coarsePointer = window.matchMedia("(pointer: coarse)");
+    if (reducedMotion.matches || coarsePointer.matches) return;
+    let animationFrame = 0;
+    const setParallax = (event: PointerEvent) => {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(() => {
+        const x = (event.clientX / window.innerWidth - 0.5) * 2;
+        const y = (event.clientY / window.innerHeight - 0.5) * 2;
+        document.documentElement.style.setProperty("--parallax-x", `${x * 22}px`);
+        document.documentElement.style.setProperty("--parallax-y", `${y * 18}px`);
+        document.documentElement.style.setProperty("--parallax-x-reverse", `${x * -14}px`);
+        document.documentElement.style.setProperty("--parallax-y-reverse", `${y * -11}px`);
+      });
+    };
+    const resetParallax = () => {
+      document.documentElement.style.setProperty("--parallax-x", "0px");
+      document.documentElement.style.setProperty("--parallax-y", "0px");
+      document.documentElement.style.setProperty("--parallax-x-reverse", "0px");
+      document.documentElement.style.setProperty("--parallax-y-reverse", "0px");
+    };
+    window.addEventListener("pointermove", setParallax, { passive: true });
+    window.addEventListener("pointerleave", resetParallax);
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener("pointermove", setParallax);
+      window.removeEventListener("pointerleave", resetParallax);
+      resetParallax();
+    };
+  }, []);
+
   const copyText = async (text: string, key: string) => {
     await navigator.clipboard?.writeText(text);
     setCopied(key);
@@ -474,6 +506,7 @@ export default function Home() {
 
   return (
     <div className="app-shell">
+      <div className="parallax-backdrop" aria-hidden="true"><span/><span/><span/></div>
       <aside className={`sidebar ${menuOpen ? "sidebar-open" : ""}`} aria-label="Основная навигация">
         <div className="brand">
           <img className="brand-logo" src="/findrive-logo.jpg" alt="ФИНДРАЙВ — займы под залог автомобилей" />

@@ -90,6 +90,10 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(styles, /font-family:var\(--font-welcome\)/i);
   assert.match(styles, /Refined lesson typography/i);
   assert.match(styles, /lesson-reading>\.lesson-intro:not\(\.welcome-line\).*font-size:15px/i);
+  assert.match(page, /--parallax-x/i);
+  assert.match(page, /requestAnimationFrame/i);
+  assert.match(styles, /Mouse parallax atmosphere/i);
+  assert.match(styles, /prefers-reduced-motion:reduce/i);
   assert.match(styles, /FINDRIVE presentation palette/i);
   assert.match(styles, /@media\(max-width:480px\)/i);
   assert.doesNotMatch(page, /Your site is taking shape/i);
