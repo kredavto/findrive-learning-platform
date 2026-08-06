@@ -47,6 +47,8 @@ test("contains the FINDRIVE Academy learning experience", async () => {
     "Отчёты амбассадора",
     "Выплата вознаграждений",
   ]) assert.match(page, new RegExp(topic, "i"));
+  assert.match(page, /История компании ООО МКК «ФИНДРАЙВ» берёт начало в 2021 году с небольшого стартапа/i);
+  assert.match(page, /собственной IT-платформой, передовыми инструментами верификации клиентских заявок/i);
   assert.match(page, /lesson\("demo-forward", "Вперед!"/i);
   assert.match(page, /demo-forward-q/i);
   assert.match(worker, /"demo-rewards", "demo-forward"/i);

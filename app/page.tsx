@@ -231,6 +231,10 @@ const jobDemoLessons: TrainingLesson[] = [
   lesson("demo-forward", "Вперед!", "4 мин", "Ты молодец — демонстрация должности пройдена до конца. До начала переговоров с потенциальными клиентами осталось совсем чуть-чуть: необходимо пройти короткое обучение по привлечению инвестиций в микрокредитную компанию.", "Следующий этап поможет уверенно объяснять продукт, задавать правильные вопросы и договариваться о следующем шаге.", ["Закрепи особенности привлечения инвестиций в микрокредитную компанию.", "Освой структуру переговоров и работу с возражениями.", "После обучения переходи к переговорам с потенциальными клиентами."], "Ты уже разобрался в роли амбассадора. Остался короткий учебный этап — и можно переходить к практическим переговорам.", question("demo-forward-q", "Что необходимо сделать перед началом переговоров с потенциальными клиентами?", [["training", "Пройти короткое обучение по привлечению инвестиций"], ["start", "Сразу начинать переговоры без подготовки"]], "training", "Верно: короткое обучение поможет применять материал уверенно и последовательно.")),
 ];
 
+const demoAdditionalParagraphs: Record<string, string[]> = {
+  "demo-company-history": ["История компании ООО МКК «ФИНДРАЙВ» берёт начало в 2021 году с небольшого стартапа, который начинал работать по франшизе, собирал клиентскую базу по крупицам и выстраивал бизнес-процессы путём проб и ошибок с нуля. Сегодня «ФИНДРАЙВ» — прибыльная, быстро развивающаяся компания с собственной IT-платформой, передовыми инструментами верификации клиентских заявок, надёжным механизмом защиты от недобросовестных действий заёмщиков и отлаженной системой коммуникации с клиентами."],
+};
+
 const scripts = [
   {
     title: "Первое сообщение знакомому контакту",
@@ -715,7 +719,7 @@ function PositionDemo({ firstName, progress, onProgress, onComplete }: { firstNa
           {currentLesson.id === "demo-welcome" ? <>
             <p className="lesson-intro welcome-line">{firstName}, добро пожаловать в Академию ФИНДРАЙВ!</p>
             <p className="lesson-intro welcome-description">Пройди небольшую демонстрацию должности, которая поможет тебе увидеть работу амбассадора от первого знакомства с компанией до выплаты вознаграждения.</p>
-          </> : <p className="lesson-intro">{currentLesson.intro}</p>}
+          </> : <><p className="lesson-intro">{currentLesson.intro}</p>{demoAdditionalParagraphs[currentLesson.id]?.map((paragraph) => <p className="lesson-intro history-detail" key={paragraph}>{paragraph}</p>)}</>}
           <aside className="green-callout"><CheckCircle2 size={20}/><p>{currentLesson.callout}</p></aside>
           <div className="lesson-points"><h3>Что важно запомнить:</h3><ul>{currentLesson.points.map((point) => <li key={point}><Check size={15}/><span>{point}</span></li>)}</ul></div>
           <aside className="green-callout strong"><CheckCircle2 size={20}/><p>{currentLesson.conclusion}</p></aside>
