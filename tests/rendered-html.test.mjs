@@ -96,6 +96,11 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(styles, /prefers-reduced-motion:reduce/i);
   assert.match(styles, /Readable locked lesson titles/i);
   assert.match(styles, /lesson-nav button:disabled\{color:#978e80;opacity:1\}/i);
+  assert.match(page, /lesson-progress-track/i);
+  assert.match(page, /persistLearningProgress\("demo", currentLesson\.id, 25\)/i);
+  assert.match(page, /persistLearningProgress\("lesson", currentLesson\.id, 25\)/i);
+  assert.match(page, /answerProgress.*90.*70/s);
+  assert.match(styles, /lesson-progress-track\{[^}]*margin-right:1cm/i);
   assert.match(styles, /FINDRIVE presentation palette/i);
   assert.match(styles, /@media\(max-width:480px\)/i);
   assert.doesNotMatch(page, /Your site is taking shape/i);

@@ -306,6 +306,12 @@ const nav = [
 
 const emptyProgress: CourseProgress = { demos: [], lessons: [], blocks: [], videoSubmitted: false, video: null };
 
+const persistLearningProgress = async (kind: "demo" | "lesson" | "block", id: string, percent = 100) => {
+  const response = await fetch("/api/progress", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind, id, percent }) });
+  const data = await response.json().catch(() => ({})) as { error?: string };
+  if (!response.ok) throw new Error(data.error || "Не удалось сохранить прогресс.");
+};
+
 function Badge({ children, tone = "neutral" }: { children: React.ReactNode; tone?: string }) {
   return <span className={`badge badge-${tone}`}>{children}</span>;
 }
@@ -617,6 +623,11 @@ function PositionDemo({ firstName, progress, onProgress, onComplete }: { firstNa
   const canContinue = isCompleted || answerCorrect;
   const percent = Math.round((completed.length / jobDemoLessons.length) * 100);
 
+  useEffect(() => {
+    if (isCompleted) return;
+    void persistLearningProgress("demo", currentLesson.id, 25).catch(() => undefined);
+  }, [currentLesson.id, isCompleted]);
+
   const lessonUnlocked = (index: number) => index === 0 || jobDemoLessons.slice(0, index).every((item) => completed.includes(item.id));
 
   const openDemoLesson = (index: number) => {
@@ -643,21 +654,26 @@ function PositionDemo({ firstName, progress, onProgress, onComplete }: { firstNa
     setVideoError("");
   };
 
+  const chooseAnswer = (optionId: string) => {
+    setAnswer(optionId);
+    if (isCompleted) return;
+    const answerProgress = optionId === currentLesson.question.correct ? 90 : 70;
+    void persistLearningProgress("demo", currentLesson.id, answerProgress).catch(() => undefined);
+  };
+
   const finishLesson = async () => {
     if (!canContinue) return;
     if (!isCompleted) {
       setProgressError("");
       try {
-        const response = await fetch("/api/progress", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind: "demo", id: currentLesson.id, percent: 100 }) });
-        const data = await response.json().catch(() => ({})) as { error?: string };
-        if (!response.ok) throw new Error(data.error || "Не удалось сохранить прогресс.");
+        await persistLearningProgress("demo", currentLesson.id, 100);
       } catch (reason) {
         setProgressError(reason instanceof Error ? reason.message : "Не удалось сохранить прогресс.");
         return;
       }
       const completedAt = new Date().toISOString();
       setCompleted((current) => current.includes(currentLesson.id) ? current : [...current, currentLesson.id]);
-      onProgress((current) => ({ ...current, demos: (current.demos || []).some((item) => item.id === currentLesson.id) ? current.demos : [...(current.demos || []), { id: currentLesson.id, percent: 100, completedAt }] }));
+      onProgress((current) => ({ ...current, demos: (current.demos || []).some((item) => item.id === currentLesson.id) ? current.demos.map((item) => item.id === currentLesson.id ? { ...item, percent: 100, completedAt } : item) : [...(current.demos || []), { id: currentLesson.id, percent: 100, completedAt }] }));
     }
     if (lessonIndex === jobDemoLessons.length - 1) {
       onComplete();
@@ -702,7 +718,7 @@ function PositionDemo({ firstName, progress, onProgress, onComplete }: { firstNa
           <aside className="green-callout"><CheckCircle2 size={20}/><p>{currentLesson.callout}</p></aside>
           <div className="lesson-points"><h3>Что важно запомнить:</h3><ul>{currentLesson.points.map((point) => <li key={point}><Check size={15}/><span>{point}</span></li>)}</ul></div>
           <aside className="green-callout strong"><CheckCircle2 size={20}/><p>{currentLesson.conclusion}</p></aside>
-          <section className="lesson-question-card"><small>Экспресс-тест</small><h3>{currentLesson.question.text}</h3><div>{currentLesson.question.options.map((option) => <button key={option.id} className={answer === option.id ? "selected" : ""} onClick={() => setAnswer(option.id)}><span>{answer === option.id ? <Check size={13}/> : null}</span>{option.text}</button>)}</div>{answer && <p className={answerCorrect ? "answer-good" : "answer-bad"}>{answerCorrect ? currentLesson.question.explanation : "Пока неверно. Вернитесь к ключевым пунктам и попробуйте ещё раз."}</p>}</section>
+          <section className="lesson-question-card"><small>Экспресс-тест</small><h3>{currentLesson.question.text}</h3><div>{currentLesson.question.options.map((option) => <button key={option.id} className={answer === option.id ? "selected" : ""} onClick={() => chooseAnswer(option.id)}><span>{answer === option.id ? <Check size={13}/> : null}</span>{option.text}</button>)}</div>{answer && <p className={answerCorrect ? "answer-good" : "answer-bad"}>{answerCorrect ? currentLesson.question.explanation : "Пока неверно. Вернитесь к ключевым пунктам и попробуйте ещё раз."}</p>}</section>
           {progressError && <p className="video-error" role="alert">{progressError}</p>}
           <footer className="lesson-next"><button className="primary-button" disabled={!canContinue} onClick={finishLesson}>{lessonIndex === jobDemoLessons.length - 1 ? "Завершить и перейти к курсу" : "Следующая тема"}<ChevronRight size={17}/></button><small>{lessonIndex < jobDemoLessons.length - 1 ? `Далее: ${jobDemoLessons[lessonIndex + 1].title}` : "После ответа автоматически откроется курс амбассадора"}</small></footer>
         </div>
@@ -739,6 +755,11 @@ function Course({ progress, onProgress, onVideoCard }: { progress: CourseProgres
   const lessonCompleted = currentLesson ? completedLessons.includes(currentLesson.id) : false;
   const lessonAnswerCorrect = currentLesson ? lessonAnswer === currentLesson.question.correct : false;
   const canContinueLesson = lessonCompleted || lessonAnswerCorrect;
+
+  useEffect(() => {
+    if (!currentLesson || lessonCompleted) return;
+    void persistLearningProgress("lesson", currentLesson.id, 25).catch(() => undefined);
+  }, [currentLesson?.id, lessonCompleted]);
 
   const openBlock = (index: number) => {
     if (!blockUnlocked(index)) return;
@@ -781,10 +802,13 @@ function Course({ progress, onProgress, onVideoCard }: { progress: CourseProgres
     setVideoError("");
   };
 
-  const saveProgress = async (kind: "lesson" | "block", id: string) => {
-    const response = await fetch("/api/progress", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind, id, percent: 100 }) });
-    const data = await response.json().catch(() => ({})) as { error?: string };
-    if (!response.ok) throw new Error(data.error || "Не удалось сохранить прогресс.");
+  const saveProgress = (kind: "lesson" | "block", id: string) => persistLearningProgress(kind, id, 100);
+
+  const chooseLessonAnswer = (optionId: string) => {
+    setLessonAnswer(optionId);
+    if (!currentLesson || lessonCompleted) return;
+    const answerProgress = optionId === currentLesson.question.correct ? 90 : 70;
+    void persistLearningProgress("lesson", currentLesson.id, answerProgress).catch(() => undefined);
   };
 
   const completeLesson = async () => {
@@ -798,7 +822,7 @@ function Course({ progress, onProgress, onVideoCard }: { progress: CourseProgres
     }
     const completedAt = new Date().toISOString();
     setCompletedLessons((current) => current.includes(currentLesson.id) ? current : [...current, currentLesson.id]);
-    onProgress((current) => ({ ...current, lessons: current.lessons.some((item) => item.id === currentLesson.id) ? current.lessons : [...current.lessons, { id: currentLesson.id, percent: 100, completedAt }] }));
+    onProgress((current) => ({ ...current, lessons: current.lessons.some((item) => item.id === currentLesson.id) ? current.lessons.map((item) => item.id === currentLesson.id ? { ...item, percent: 100, completedAt } : item) : [...current.lessons, { id: currentLesson.id, percent: 100, completedAt }] }));
     setLessonAnswer("");
     setVideoError("");
     setLessonIndex(Math.min(lessonIndex + 1, block.lessons.length));
@@ -890,7 +914,7 @@ function Course({ progress, onProgress, onVideoCard }: { progress: CourseProgres
 
             <section className="lesson-question-card">
               <h3>{currentLesson.question.text}</h3>
-              <div>{currentLesson.question.options.map((option) => <button key={option.id} className={lessonAnswer === option.id ? "selected" : ""} onClick={() => setLessonAnswer(option.id)}><span>{lessonAnswer === option.id ? <Check size={13}/> : null}</span>{option.text}</button>)}</div>
+              <div>{currentLesson.question.options.map((option) => <button key={option.id} className={lessonAnswer === option.id ? "selected" : ""} onClick={() => chooseLessonAnswer(option.id)}><span>{lessonAnswer === option.id ? <Check size={13}/> : null}</span>{option.text}</button>)}</div>
               {lessonAnswer && <p className={lessonAnswerCorrect ? "answer-good" : "answer-bad"}>{lessonAnswerCorrect ? currentLesson.question.explanation : "Пока неверно. Вернитесь к ключевым пунктам и попробуйте ещё раз."}</p>}
             </section>
 
@@ -1005,11 +1029,11 @@ function TeamDashboard({ highlightUserId = "" }: { highlightUserId?: string }) {
             </div>
             <section className="progress-section" aria-label={`Демонстрация должности: ${user.lastName} ${user.firstName}`}>
               <div className="lesson-progress-head"><strong>Демонстрация должности — каждый урок</strong><span>{user.demoProgressPercent === 100 ? "Завершена" : `${user.demoProgressPercent}% пройдено`}</span></div>
-              <div className="lesson-table-head" aria-hidden="true"><span>№</span><span>Урок</span><span>Статус</span><span>Прогресс</span><span>Дата и время</span></div>
+              <div className="lesson-table-head" aria-hidden="true"><span>№</span><span>Урок</span><span>Пройдено</span><span>Статус</span><span>Прогресс</span><span>Дата и время</span></div>
               {jobDemoLessons.map((demo, index) => {
                 const saved = demoProgressById.get(demo.id);
                 const percent = saved?.percent || 0;
-                return <div className="lesson-progress-line demo-progress-line" key={demo.id}><span>{index + 1}</span><div><strong>{demo.title}</strong><small>Демонстрация должности</small></div><em className={`progress-status ${percent === 100 ? "done" : percent > 0 ? "started" : "idle"}`}>{percent === 100 ? "Пройден" : percent > 0 ? "В процессе" : "Не начат"}</em><b>{percent}%</b><time>{saved ? formatMoment(saved.completedAt) : "—"}</time></div>;
+                return <div className="lesson-progress-line demo-progress-line" key={demo.id}><span>{index + 1}</span><div><strong>{demo.title}</strong><small>Демонстрация должности</small></div><i className="lesson-progress-track" role="progressbar" aria-label={`Пройдено ${percent}% урока ${demo.title}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}><span style={{ width: `${percent}%` }}/></i><em className={`progress-status ${percent === 100 ? "done" : percent > 0 ? "started" : "idle"}`}>{percent === 100 ? "Пройден" : percent > 0 ? "В процессе" : "Не начат"}</em><b>{percent}%</b><time>{saved ? formatMoment(saved.completedAt) : "—"}</time></div>;
               })}
             </section>
             <section className="progress-section course-progress-section" aria-label={`Учебный курс: ${user.lastName} ${user.firstName}`}>
@@ -1019,11 +1043,11 @@ function TeamDashboard({ highlightUserId = "" }: { highlightUserId?: string }) {
                 const lessonOffset = learningBlocks.slice(0, blockIndex).reduce((sum, entry) => sum + entry.lessons.length, 0);
                 return <div className="block-progress-group" key={block.id}>
                   <div className="block-progress-title"><div><span>{blockIndex + 1}</span><strong>{block.title}</strong></div><small>{blockResult ? `Итоговый тест пройден ${formatMoment(blockResult.completedAt)}` : "Итоговый тест не пройден"}</small></div>
-                  <div className="lesson-table-head" aria-hidden="true"><span>№</span><span>Урок</span><span>Статус</span><span>Прогресс</span><span>Дата и время</span></div>
+                  <div className="lesson-table-head" aria-hidden="true"><span>№</span><span>Урок</span><span>Пройдено</span><span>Статус</span><span>Прогресс</span><span>Дата и время</span></div>
                   {block.lessons.map((lesson, lessonIndex) => {
                     const saved = lessonProgressById.get(lesson.id);
                     const percent = saved?.percent || 0;
-                    return <div className="lesson-progress-line" key={lesson.id}><span>{lessonOffset + lessonIndex + 1}</span><div><strong>{lesson.title}</strong><small>{block.title}</small></div><em className={`progress-status ${percent === 100 ? "done" : percent > 0 ? "started" : "idle"}`}>{percent === 100 ? "Пройден" : percent > 0 ? "В процессе" : "Не начат"}</em><b>{percent}%</b><time>{saved ? formatMoment(saved.completedAt) : "—"}</time></div>;
+                    return <div className="lesson-progress-line" key={lesson.id}><span>{lessonOffset + lessonIndex + 1}</span><div><strong>{lesson.title}</strong><small>{block.title}</small></div><i className="lesson-progress-track" role="progressbar" aria-label={`Пройдено ${percent}% урока ${lesson.title}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}><span style={{ width: `${percent}%` }}/></i><em className={`progress-status ${percent === 100 ? "done" : percent > 0 ? "started" : "idle"}`}>{percent === 100 ? "Пройден" : percent > 0 ? "В процессе" : "Не начат"}</em><b>{percent}%</b><time>{saved ? formatMoment(saved.completedAt) : "—"}</time></div>;
                   })}
                 </div>;
               })}
