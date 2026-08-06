@@ -35,6 +35,15 @@ import { useEffect, useMemo, useState } from "react";
 
 type View = "dashboard" | "course" | "scripts" | "leads" | "payouts" | "documents" | "control";
 
+type AmbassadorProfile = {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+};
+
+type ProfileState = "loading" | "registration" | "auth-required" | "ready" | "error";
+
 type TrainingQuestion = {
   id: string;
   text: string;
@@ -80,7 +89,7 @@ const learningBlocks: TrainingBlock[] = [
     title: "Знакомство с ФИНДРАЙВ",
     description: "Компания, продукт, бизнес-модель и ключевые риски",
     lessons: [
-      lesson("company-model", "Компания и бизнес-модель", "12 мин", "ФИНДРАЙВ — микрокредитная компания, работающая с займами под залог автомобилей. Амбассадор должен объяснять модель простыми словами и опираться только на подтверждённые источники.", "Начинайте не с цифр, а с понятного ответа: кто компания, какую задачу решает и где проверить её статус.", ["Проверяйте карточку компании в реестре Банка России.", "Разделяйте продукт для заёмщика и привлечение средств в бизнес.", "Не превращайте данные презентации в обещание результата."], "Доверие начинается с проверяемых фактов, а не с убедительных формулировок.", question("company-model-q", "С чего безопаснее начать рассказ о компании?", [["rate", "С заявленной доходности"], ["facts", "Со статуса, модели работы и проверяемых источников"]], "facts", "Верно: сначала идентификация компании и подтверждённые факты.")),
+      lesson("company-model", "Приветствие", "12 мин", "Добро пожаловать в Академию ФИНДРАЙВ. В первом уроке вы познакомитесь с компанией, её бизнес-моделью и правилами работы амбассадора. ФИНДРАЙВ — микрокредитная компания, работающая с займами под залог автомобилей.", "Начинайте знакомство с понятного ответа: кто компания, какую задачу решает и где проверить её статус.", ["Проверяйте карточку компании в реестре Банка России.", "Разделяйте продукт для заёмщика и привлечение средств в бизнес.", "Не превращайте данные презентации в обещание результата."], "Доверие начинается с проверяемых фактов, а не с убедительных формулировок.", question("company-model-q", "С чего безопаснее начать рассказ о компании?", [["rate", "С заявленной доходности"], ["facts", "Со статуса, модели работы и проверяемых источников"]], "facts", "Верно: сначала идентификация компании и подтверждённые факты.")),
       lesson("borrower-product", "Продукт для заёмщика", "14 мин", "Основной продукт — заём под залог автомобиля. Решение принимается после идентификации клиента, проверки документов и оценки автомобиля.", "Залог снижает риск, но не исключает просрочку, расходы на взыскание и изменение стоимости автомобиля.", ["Автомобиль может оставаться у заёмщика.", "Условия зависят от проверки и договора.", "Амбассадор не принимает кредитное решение."], "Говорите о процедуре, не обещая одобрение и конкретные условия до проверки.", question("borrower-product-q", "Что вправе обещать амбассадор заёмщику?", [["approval", "Гарантированное одобрение"], ["process", "Передачу заявки и объяснение процедуры"]], "process", "Верно: решение и условия определяет уполномоченный специалист.")),
       lesson("business-funding", "Привлечение средств", "16 мин", "Юридические лица могут быть целевой аудиторией для привлечения средств в бизнес МКК. Для ИП требуется отдельная проверка статуса участника или учредителя компании.", "Не смешивайте договор финансирования бизнеса с банковским вкладом или займом для клиента.", ["Целевая аудитория — юридические лица.", "ИП проверяется как физическое лицо со специальным статусом.", "Условия определяются договором и согласуются специалистом."], "Амбассадор квалифицирует интерес и передаёт контакт, но не заключает договор от имени компании.", question("business-funding-q", "Кого можно сразу отнести к целевой аудитории?", [["individual", "Любое физическое лицо"], ["legal", "Юридическое лицо"]], "legal", "Верно: юридическое лицо — допустимый целевой клиент.")),
       lesson("risk-documents", "Риски и документы", "15 мин", "Показатели презентации помогают понять модель, но требуют подтверждения актуальными документами. Любой вопрос о гарантиях, налогах или договоре передаётся специалисту.", "Формулировка «обеспечено залогом» не равна формулировке «возврат гарантирован».", ["Кредитный риск — возможное нарушение обязательств.", "Ликвидность залога ограничена сроками реализации.", "Юридические и операционные риски раскрываются честно."], "Лучший ответ на сложный вопрос — зафиксировать его и организовать разговор со специалистом.", question("risk-documents-q", "Что делать при вопросе о гарантии возврата?", [["guarantee", "Подтвердить гарантию залогом"], ["escalate", "Раскрыть отсутствие гарантии и передать специалисту"]], "escalate", "Верно: обеспечение снижает риск, но не даёт безусловной гарантии.")),
@@ -246,8 +255,68 @@ function ProgressRing({ value }: { value: number }) {
   );
 }
 
+function RegistrationGate({ state, defaultEmail, onRegistered }: { state: ProfileState; defaultEmail: string; onRegistered: (profile: AmbassadorProfile) => void }) {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState(defaultEmail);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (defaultEmail) setEmail(defaultEmail);
+  }, [defaultEmail]);
+
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError("");
+    try {
+      const response = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ firstName, lastName, phone, email }),
+      });
+      const data = await response.json() as { profile?: AmbassadorProfile; error?: string };
+      if (!response.ok || !data.profile) throw new Error(data.error || "Не удалось завершить регистрацию.");
+      onRegistered(data.profile);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Не удалось завершить регистрацию.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (state === "loading") return <main className="onboarding-screen"><section className="onboarding-card onboarding-loading"><img src="/findrive-logo.jpg" alt="ФИНДРАЙВ"/><div className="onboarding-spinner"/><strong>Проверяем данные профиля…</strong></section></main>;
+
+  if (state === "auth-required") return <main className="onboarding-screen"><section className="onboarding-card onboarding-message"><img src="/findrive-logo.jpg" alt="ФИНДРАЙВ"/><Badge tone="review">Защищённый вход</Badge><h1>Войдите в систему</h1><p>После входа откроется карточка регистрации амбассадора.</p><a className="primary-button" href="/signin-with-chatgpt?return_to=%2F">Войти и продолжить <ArrowRight size={17}/></a></section></main>;
+
+  if (state === "error") return <main className="onboarding-screen"><section className="onboarding-card onboarding-message"><img src="/findrive-logo.jpg" alt="ФИНДРАЙВ"/><Badge tone="danger">Ошибка соединения</Badge><h1>Профиль пока не открылся</h1><p>Обновите страницу и попробуйте ещё раз.</p><button className="primary-button" onClick={() => window.location.reload()}>Повторить</button></section></main>;
+
+  return <main className="onboarding-screen">
+    <section className="onboarding-card">
+      <div className="onboarding-brand"><img src="/findrive-logo.jpg" alt="ФИНДРАЙВ — займы под залог автомобилей"/><span>АКАДЕМИЯ</span></div>
+      <Badge tone="active"><CheckCircle2 size={13}/> Вход выполнен</Badge>
+      <h1>Регистрация амбассадора</h1>
+      <p className="onboarding-lead">Заполните карточку пользователя. После регистрации сразу откроется первый урок «Приветствие».</p>
+      <form className="registration-form" onSubmit={submit}>
+        <label><span>Фамилия</span><input name="lastName" autoComplete="family-name" value={lastName} onChange={(event) => setLastName(event.target.value)} placeholder="Иванов" minLength={2} maxLength={80} required/></label>
+        <label><span>Имя</span><input name="firstName" autoComplete="given-name" value={firstName} onChange={(event) => setFirstName(event.target.value)} placeholder="Иван" minLength={2} maxLength={80} required/></label>
+        <label><span>Телефон</span><input name="phone" type="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+7 999 000-00-00" minLength={10} maxLength={24} required/></label>
+        <label><span>Электронная почта</span><input name="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@company.ru" maxLength={254} required/></label>
+        {error && <p className="registration-error" role="alert">{error}</p>}
+        <button className="primary-button registration-submit" disabled={submitting}>{submitting ? "Сохраняем данные…" : "Зарегистрироваться и открыть обучение"}<ArrowRight size={17}/></button>
+      </form>
+      <p className="registration-note"><LockKeyhole size={14}/> Данные используются для профиля и персонального прохождения обучения.</p>
+    </section>
+  </main>;
+}
+
 export default function Home() {
-  const [view, setView] = useState<View>("dashboard");
+  const [view, setView] = useState<View>("course");
+  const [profileState, setProfileState] = useState<ProfileState>("loading");
+  const [profile, setProfile] = useState<AmbassadorProfile | null>(null);
+  const [registrationEmail, setRegistrationEmail] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [copied, setCopied] = useState("");
   const [query, setQuery] = useState("");
@@ -255,6 +324,27 @@ export default function Home() {
   const [quizAnswer, setQuizAnswer] = useState<string | null>(null);
 
   const filteredScripts = useMemo(() => scripts.filter((item) => `${item.title} ${item.tag} ${item.safe}`.toLowerCase().includes(query.toLowerCase())), [query]);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/profile", { cache: "no-store" }).then(async (response) => {
+      const data = await response.json().catch(() => ({})) as { profile?: AmbassadorProfile; email?: string };
+      if (!active) return;
+      if (response.ok && data.profile) {
+        setProfile(data.profile);
+        setProfileState("ready");
+        setView("course");
+      } else if (response.status === 404) {
+        setRegistrationEmail(data.email || "");
+        setProfileState("registration");
+      } else if (response.status === 401) {
+        setProfileState("auth-required");
+      } else {
+        setProfileState("error");
+      }
+    }).catch(() => active && setProfileState("error"));
+    return () => { active = false; };
+  }, []);
 
   const copyText = async (text: string, key: string) => {
     await navigator.clipboard?.writeText(text);
@@ -267,6 +357,18 @@ export default function Home() {
     setMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  if (profileState !== "ready" || !profile) {
+    return <RegistrationGate state={profileState} defaultEmail={registrationEmail} onRegistered={(registeredProfile) => {
+      setProfile(registeredProfile);
+      setProfileState("ready");
+      setView("course");
+      window.scrollTo({ top: 0 });
+    }}/>;
+  }
+
+  const fullName = `${profile.lastName} ${profile.firstName}`;
+  const initials = `${profile.firstName[0] || ""}${profile.lastName[0] || ""}`.toUpperCase();
 
   return (
     <div className="app-shell">
@@ -288,8 +390,8 @@ export default function Home() {
             <div><span>Допуск к работе</span><strong>Юридические лица</strong></div>
           </div>
           <button className="user-card" aria-label="Открыть профиль">
-            <span className="avatar">АВ</span>
-            <span><strong>Алексей Воронов</strong><small>Амбассадор · демо</small></span>
+            <span className="avatar">{initials}</span>
+            <span><strong>{fullName}</strong><small>Амбассадор</small></span>
             <Settings2 size={17} />
           </button>
         </div>
@@ -303,7 +405,7 @@ export default function Home() {
         </header>
 
         <div className="content">
-          {view === "dashboard" && <Dashboard onNavigate={navigate} onLesson={() => navigate("course")} copied={copied} onCopy={copyText} />}
+          {view === "dashboard" && <Dashboard firstName={profile.firstName} onNavigate={navigate} onLesson={() => navigate("course")} copied={copied} onCopy={copyText} />}
           {view === "course" && <Course />}
           {view === "scripts" && <Scripts query={query} setQuery={setQuery} filtered={filteredScripts} active={scriptIndex} setActive={setScriptIndex} copied={copied} onCopy={copyText} />}
           {view === "leads" && <Leads />}
@@ -317,11 +419,11 @@ export default function Home() {
   );
 }
 
-function Dashboard({ onNavigate, onLesson, copied, onCopy }: { onNavigate: (v: View) => void; onLesson: () => void; copied: string; onCopy: (text: string, key: string) => void }) {
+function Dashboard({ firstName, onNavigate, onLesson, copied, onCopy }: { firstName: string; onNavigate: (v: View) => void; onLesson: () => void; copied: string; onCopy: (text: string, key: string) => void }) {
   const referral = "findrive78.ru/r/A-1042";
   return <>
     <section className="page-heading">
-      <div><Badge tone="date">Вторник, 4 августа</Badge><h1>Добрый день, Алексей</h1><p>Продолжите обучение и проверьте обязательное обновление комплаенса.</p></div>
+      <div><Badge tone="date">Вторник, 4 августа</Badge><h1>Добрый день, {firstName}</h1><p>Продолжите обучение и проверьте обязательное обновление комплаенса.</p></div>
       <button className="secondary-button" onClick={() => onNavigate("course")}><BookOpen size={18} /> Открыть курс</button>
     </section>
 
