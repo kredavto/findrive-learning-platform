@@ -69,3 +69,7 @@ html,body{background:#090909;color:var(--ink)}body{background:radial-gradient(ci
 /* Readable locked lesson titles */
 .lesson-nav button strong{font-size:11px;line-height:1.4}.lesson-nav button:disabled{color:#978e80;opacity:1}.lesson-nav button:disabled>span{color:#8b8274;border-color:#51493d;background:#171511}.learning-blocks button:disabled{opacity:1}.learning-blocks button:disabled strong{color:#978e80}.learning-blocks button:disabled small{color:#756e63}.learning-blocks button:disabled>span{color:#8b8274;background:#1d1a15}
 @media(max-width:760px){.lesson-nav button strong{font-size:10.5px}}
+
+/* Enlarged FINDRIVE Academy brand */
+.sidebar .brand{min-height:164px;padding:0 0 26px}.sidebar .brand-logo{width:220px;max-width:100%;height:122px}.sidebar .brand-academy{font-size:14px;font-weight:700;letter-spacing:.46em;line-height:1.2;margin-top:-7px;margin-left:.46em;text-shadow:0 0 18px rgba(234,198,101,.16)}
+@media(max-width:600px){.sidebar .brand{min-height:156px}.sidebar .brand-logo{width:210px;height:116px}.sidebar .brand-academy{font-size:13px}}

@@ -101,6 +101,9 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /persistLearningProgress\("lesson", currentLesson\.id, 25\)/i);
   assert.match(page, /answerProgress.*90.*70/s);
   assert.match(styles, /lesson-progress-track\{[^}]*margin-right:1cm/i);
+  assert.match(styles, /Enlarged FINDRIVE Academy brand/i);
+  assert.match(styles, /sidebar \.brand-logo\{width:220px/i);
+  assert.match(styles, /sidebar \.brand-academy\{font-size:14px/i);
   assert.match(styles, /FINDRIVE presentation palette/i);
   assert.match(styles, /@media\(max-width:480px\)/i);
   assert.doesNotMatch(page, /Your site is taking shape/i);
