@@ -47,7 +47,7 @@ const LESSON_IDS = new Set([
 const DEMO_SEQUENCE = [
   "demo-welcome", "demo-company-history", "demo-mission", "demo-financials", "demo-development",
   "demo-audience", "demo-products", "demo-average-ticket", "demo-ambassador-role", "demo-motivation",
-  "demo-sales-plans", "demo-reports", "demo-rewards",
+  "demo-sales-plans", "demo-reports", "demo-rewards", "demo-forward",
 ] as const;
 const DEMO_IDS = new Set<string>(DEMO_SEQUENCE);
 const BLOCK_IDS = new Set(["company", "ambassador", "sales", "tools", "compliance"]);

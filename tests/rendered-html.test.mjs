@@ -31,7 +31,7 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /Отправить письмо повторно/i);
   assert.match(page, /Я подтвердил почту/i);
   assert.match(page, /Добрый день, \{firstName\}/i);
-  assert.match(page, /"Приветствие"/i);
+  assert.match(page, /lesson\("demo-welcome", "Привет!"/i);
   assert.match(page, /Демонстрация должности/i);
   for (const topic of [
     "Кто мы — история компании",
@@ -47,6 +47,9 @@ test("contains the FINDRIVE Academy learning experience", async () => {
     "Отчёты амбассадора",
     "Выплата вознаграждений",
   ]) assert.match(page, new RegExp(topic, "i"));
+  assert.match(page, /lesson\("demo-forward", "Вперед!"/i);
+  assert.match(page, /demo-forward-q/i);
+  assert.match(worker, /"demo-rewards", "demo-forward"/i);
   assert.match(page, /Завершить и перейти к курсу/i);
   assert.doesNotMatch(page, /Добрый день, Алексей|Алексей Воронов/i);
   assert.match(worker, /oai-authenticated-user-id/i);
