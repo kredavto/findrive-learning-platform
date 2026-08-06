@@ -80,7 +80,8 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /Детализация прохождения по каждому пользователю/i);
   assert.match(page, /Прохождение каждого урока курса/i);
   assert.match(page, /Итоговый тест не пройден/i);
-  assert.match(page, /firstName.*добро пожаловать в ФИНДРАЙВ!/s);
+  assert.match(page, /firstName.*добро пожаловать в Академию ФИНДРАЙВ!/s);
+  assert.match(page, /welcome-line.*welcome-description/s);
   assert.match(page, /Демонстрация должности &quot;Амбассадор&quot;/i);
   assert.match(styles, /Per-user, per-lesson dashboard detail/i);
   assert.match(styles, /FINDRIVE presentation palette/i);

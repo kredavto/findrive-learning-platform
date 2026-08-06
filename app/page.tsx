@@ -662,7 +662,10 @@ function PositionDemo({ firstName, progress, onProgress, onComplete }: { firstNa
           {videoError && <p className="video-error" role="alert">{videoError}</p>}
         </section>
         <div className="lesson-reading">
-          <p className="lesson-intro">{currentLesson.id === "demo-welcome" ? `${firstName}, добро пожаловать в ФИНДРАЙВ! Демонстрация должности поможет увидеть работу амбассадора целиком до начала основного курса: от знакомства с компанией до отчётности и выплаты вознаграждения.` : currentLesson.intro}</p>
+          {currentLesson.id === "demo-welcome" ? <>
+            <p className="lesson-intro welcome-line">{firstName}, добро пожаловать в Академию ФИНДРАЙВ!</p>
+            <p className="lesson-intro welcome-description">Демонстрация должности поможет увидеть работу амбассадора целиком до начала основного курса: от знакомства с компанией до отчётности и выплаты вознаграждения.</p>
+          </> : <p className="lesson-intro">{currentLesson.intro}</p>}
           <aside className="green-callout"><CheckCircle2 size={20}/><p>{currentLesson.callout}</p></aside>
           <div className="lesson-points"><h3>Что важно запомнить:</h3><ul>{currentLesson.points.map((point) => <li key={point}><Check size={15}/><span>{point}</span></li>)}</ul></div>
           <aside className="green-callout strong"><CheckCircle2 size={20}/><p>{currentLesson.conclusion}</p></aside>
