@@ -77,6 +77,12 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /findrive-company-card\.docx/i);
   assert.match(page, /Следующий блок откроется только после итогового теста/i);
   assert.match(styles, /green-callout/i);
+  assert.match(page, /Детализация прохождения по каждому пользователю/i);
+  assert.match(page, /Прохождение каждого урока курса/i);
+  assert.match(page, /Итоговый тест не пройден/i);
+  assert.match(page, /firstName.*добро пожаловать в ФИНДРАЙВ!/s);
+  assert.match(page, /Демонстрация должности &quot;Амбассадор&quot;/i);
+  assert.match(styles, /Per-user, per-lesson dashboard detail/i);
   assert.match(styles, /FINDRIVE presentation palette/i);
   assert.match(styles, /@media\(max-width:480px\)/i);
   assert.doesNotMatch(page, /Your site is taking shape/i);

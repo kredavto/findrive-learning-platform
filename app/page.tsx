@@ -507,7 +507,7 @@ export default function Home() {
         </header>
 
         <div className="content">
-          {view === "position-demo" && <PositionDemo progress={courseProgress} onProgress={setCourseProgress} onComplete={() => navigate("course")} />}
+          {view === "position-demo" && <PositionDemo firstName={profile.firstName} progress={courseProgress} onProgress={setCourseProgress} onComplete={() => navigate("course")} />}
           {view === "dashboard" && <Dashboard firstName={profile.firstName} progressPercent={personalProgress} onNavigate={navigate} onLesson={() => navigate("course")} copied={copied} onCopy={copyText} />}
           {view === "course" && <Course progress={courseProgress} onProgress={setCourseProgress} onVideoCard={() => navigate(courseProgress.videoSubmitted ? "thanks" : "video-card")} />}
           {view === "scripts" && <Scripts query={query} setQuery={setQuery} filtered={filteredScripts} active={scriptIndex} setActive={setScriptIndex} copied={copied} onCopy={copyText} />}
@@ -566,7 +566,7 @@ function Dashboard({ firstName, progressPercent, onNavigate, onLesson, copied, o
   </>;
 }
 
-function PositionDemo({ progress, onProgress, onComplete }: { progress: CourseProgress; onProgress: React.Dispatch<React.SetStateAction<CourseProgress>>; onComplete: () => void }) {
+function PositionDemo({ firstName, progress, onProgress, onComplete }: { firstName: string; progress: CourseProgress; onProgress: React.Dispatch<React.SetStateAction<CourseProgress>>; onComplete: () => void }) {
   const initialCompleted = (progress.demos || []).filter((item) => item.percent >= 100).map((item) => item.id);
   const [completed, setCompleted] = useState<string[]>(initialCompleted);
   const [lessonIndex, setLessonIndex] = useState(() => {
@@ -639,13 +639,13 @@ function PositionDemo({ progress, onProgress, onComplete }: { progress: CoursePr
 
   return <>
     <section className="page-heading learning-heading demo-heading">
-      <div><Badge tone="active">Обязательный вводный этап</Badge><h1>Демонстрация должности</h1><p>Познакомьтесь с компанией и полным рабочим маршрутом амбассадора. После 13 тем автоматически откроется основной курс.</p></div>
+      <div><Badge tone="active">Обязательный вводный этап</Badge><h1>Демонстрация должности &quot;Амбассадор&quot;</h1><p>Познакомьтесь с компанией и полным рабочим маршрутом амбассадора. После 13 тем автоматически откроется основной курс.</p></div>
       <div className="heading-stat"><strong>{percent}%</strong><span>{completed.length} из {jobDemoLessons.length} тем</span></div>
     </section>
     <section className="demo-route card"><div><Sparkles size={22}/><span><small>Ваш маршрут</small><strong>Регистрация → демонстрация должности → курс амбассадора</strong></span></div><i><b style={{ width: `${percent}%` }}/></i></section>
     <section className="learning-workspace card position-workspace">
       <aside className="lesson-sidebar">
-        <div className="lesson-sidebar-head"><small>Вводный модуль</small><h2>Демонстрация должности</h2><p>Темы открываются последовательно после короткой проверки знаний.</p></div>
+        <div className="lesson-sidebar-head"><small>Вводный модуль</small><h2>Демонстрация должности &quot;Амбассадор&quot;</h2><p>Темы открываются последовательно после короткой проверки знаний.</p></div>
         <div className="lesson-nav">
           {jobDemoLessons.map((item, index) => {
             const unlocked = lessonUnlocked(index);
@@ -662,7 +662,7 @@ function PositionDemo({ progress, onProgress, onComplete }: { progress: CoursePr
           {videoError && <p className="video-error" role="alert">{videoError}</p>}
         </section>
         <div className="lesson-reading">
-          <p className="lesson-intro">{currentLesson.intro}</p>
+          <p className="lesson-intro">{currentLesson.id === "demo-welcome" ? `${firstName}, добро пожаловать в ФИНДРАЙВ! Демонстрация должности поможет увидеть работу амбассадора целиком до начала основного курса: от знакомства с компанией до отчётности и выплаты вознаграждения.` : currentLesson.intro}</p>
           <aside className="green-callout"><CheckCircle2 size={20}/><p>{currentLesson.callout}</p></aside>
           <div className="lesson-points"><h3>Что важно запомнить:</h3><ul>{currentLesson.points.map((point) => <li key={point}><Check size={15}/><span>{point}</span></li>)}</ul></div>
           <aside className="green-callout strong"><CheckCircle2 size={20}/><p>{currentLesson.conclusion}</p></aside>
@@ -944,19 +944,56 @@ function TeamDashboard({ highlightUserId = "" }: { highlightUserId?: string }) {
     {!emailConfigured && <section className="email-setup-alert"><AlertTriangle size={20}/><div><strong>Почтовые уведомления ожидают подключения отправителя</strong><p>События уже фиксируются и будут повторно отправлены после настройки почтового ключа.</p></div></section>}
     {error && <p className="video-error" role="alert">{error}</p>}
     <section className="card learners-dashboard">
-      <div className="dashboard-list-head"><strong>Пользователи</strong><small>{loading ? "Загрузка…" : `Обновлено ${formatMoment(refreshedAt)}`}</small></div>
+      <div className="dashboard-list-head">
+        <div><strong>Детализация прохождения по каждому пользователю</strong><small>Все уроки, тесты и время прохождения показаны без скрытых разделов</small></div>
+        <small>{loading ? "Загрузка…" : `Обновлено ${formatMoment(refreshedAt)}`}</small>
+      </div>
       <div className="learner-rows">{users.map((user) => {
         const start = user.registeredAt || user.createdAt;
-        return <details className={`learner-row ${user.id === highlightUserId ? "highlighted" : ""}`} key={user.id} open={user.id === highlightUserId || undefined}>
-          <summary><div className="learner-person"><span>{`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase()}</span><strong>{user.lastName} {user.firstName}</strong></div><div><small>Регистрация</small><strong>{formatMoment(start)}</strong></div><div><small>Время в программе</small><strong>{formatElapsed(start, user.video?.submittedAt, now)}</strong></div><div className="learner-progress"><small>Курс</small><strong>{user.progressPercent}%</strong><i><b style={{ width: `${user.progressPercent}%` }}/></i></div><ChevronRight size={17}/></summary>
-          <div className="lesson-progress-detail"><div className="learner-questionnaire"><div><small>Телефон</small><strong>{user.phone || "—"}</strong></div><div><small>Электронная почта</small><strong>{user.email || "—"}</strong></div><div><small>Дата регистрации</small><strong>{formatMoment(start)}</strong></div><div><small>Демонстрация должности</small><strong>{user.demoProgressPercent}%</strong></div></div><div className="lesson-progress-head"><strong>Демонстрация должности</strong><span>{user.demoProgressPercent === 100 ? "Завершена" : `${user.demoProgressPercent}% пройдено`}</span></div>{jobDemoLessons.map((demo, index) => {
-            const saved = user.demos?.find((item) => item.id === demo.id);
-            return <div className="lesson-progress-line demo-progress-line" key={demo.id}><span>{index + 1}</span><div><strong>{demo.title}</strong><small>Демонстрация должности</small></div><b>{saved?.percent || 0}%</b><time>{saved ? formatMoment(saved.completedAt) : "Не начат"}</time></div>;
-          })}<div className="lesson-progress-head course-progress-head"><strong>Прохождение уроков курса</strong><span>{user.video ? `Видеовизитка: ${formatMoment(user.video.submittedAt)}` : "Видеовизитка не загружена"}</span></div>{lessonCatalog.map((lesson) => {
-            const saved = user.lessons.find((item) => item.id === lesson.id);
-            return <div className="lesson-progress-line" key={lesson.id}><span>{lesson.order}</span><div><strong>{lesson.title}</strong><small>{lesson.blockTitle}</small></div><b>{saved?.percent || 0}%</b><time>{saved ? formatMoment(saved.completedAt) : "Не начат"}</time></div>;
-          })}</div>
-        </details>;
+        const demoProgressById = new Map((user.demos || []).map((item) => [item.id, item]));
+        const lessonProgressById = new Map((user.lessons || []).map((item) => [item.id, item]));
+        const blockCompletionById = new Map((user.blocks || []).map((item) => [item.id, item]));
+        return <article className={`learner-card ${user.id === highlightUserId ? "highlighted" : ""}`} key={user.id}>
+          <header className="learner-overview">
+            <div className="learner-person"><span>{`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase()}</span><strong>{user.lastName} {user.firstName}</strong></div>
+            <div><small>Регистрация</small><strong>{formatMoment(start)}</strong></div>
+            <div><small>Время в программе</small><strong>{formatElapsed(start, user.video?.submittedAt, now)}</strong></div>
+            <div className="learner-progress"><small>Весь курс</small><strong>{user.progressPercent}%</strong><i><b style={{ width: `${user.progressPercent}%` }}/></i></div>
+          </header>
+          <div className="lesson-progress-detail">
+            <div className="learner-questionnaire">
+              <div><small>Телефон</small><strong>{user.phone || "—"}</strong></div>
+              <div><small>Электронная почта</small><strong>{user.email || "—"}</strong></div>
+              <div><small>Дата регистрации</small><strong>{formatMoment(start)}</strong></div>
+              <div><small>Демонстрация должности</small><strong>{user.demoProgressPercent}%</strong></div>
+            </div>
+            <section className="progress-section" aria-label={`Демонстрация должности: ${user.lastName} ${user.firstName}`}>
+              <div className="lesson-progress-head"><strong>Демонстрация должности — каждый урок</strong><span>{user.demoProgressPercent === 100 ? "Завершена" : `${user.demoProgressPercent}% пройдено`}</span></div>
+              <div className="lesson-table-head" aria-hidden="true"><span>№</span><span>Урок</span><span>Статус</span><span>Прогресс</span><span>Дата и время</span></div>
+              {jobDemoLessons.map((demo, index) => {
+                const saved = demoProgressById.get(demo.id);
+                const percent = saved?.percent || 0;
+                return <div className="lesson-progress-line demo-progress-line" key={demo.id}><span>{index + 1}</span><div><strong>{demo.title}</strong><small>Демонстрация должности</small></div><em className={`progress-status ${percent === 100 ? "done" : percent > 0 ? "started" : "idle"}`}>{percent === 100 ? "Пройден" : percent > 0 ? "В процессе" : "Не начат"}</em><b>{percent}%</b><time>{saved ? formatMoment(saved.completedAt) : "—"}</time></div>;
+              })}
+            </section>
+            <section className="progress-section course-progress-section" aria-label={`Учебный курс: ${user.lastName} ${user.firstName}`}>
+              <div className="lesson-progress-head course-progress-head"><strong>Прохождение каждого урока курса</strong><span>{user.video ? `Видеовизитка: ${formatMoment(user.video.submittedAt)}` : "Видеовизитка не загружена"}</span></div>
+              {learningBlocks.map((block, blockIndex) => {
+                const blockResult = blockCompletionById.get(block.id);
+                const lessonOffset = learningBlocks.slice(0, blockIndex).reduce((sum, entry) => sum + entry.lessons.length, 0);
+                return <div className="block-progress-group" key={block.id}>
+                  <div className="block-progress-title"><div><span>{blockIndex + 1}</span><strong>{block.title}</strong></div><small>{blockResult ? `Итоговый тест пройден ${formatMoment(blockResult.completedAt)}` : "Итоговый тест не пройден"}</small></div>
+                  <div className="lesson-table-head" aria-hidden="true"><span>№</span><span>Урок</span><span>Статус</span><span>Прогресс</span><span>Дата и время</span></div>
+                  {block.lessons.map((lesson, lessonIndex) => {
+                    const saved = lessonProgressById.get(lesson.id);
+                    const percent = saved?.percent || 0;
+                    return <div className="lesson-progress-line" key={lesson.id}><span>{lessonOffset + lessonIndex + 1}</span><div><strong>{lesson.title}</strong><small>{block.title}</small></div><em className={`progress-status ${percent === 100 ? "done" : percent > 0 ? "started" : "idle"}`}>{percent === 100 ? "Пройден" : percent > 0 ? "В процессе" : "Не начат"}</em><b>{percent}%</b><time>{saved ? formatMoment(saved.completedAt) : "—"}</time></div>;
+                  })}
+                </div>;
+              })}
+            </section>
+          </div>
+        </article>;
       })}{!loading && !users.length && <p className="empty">Зарегистрированных пользователей пока нет.</p>}</div>
     </section>
   </>;
