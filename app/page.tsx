@@ -312,6 +312,14 @@ const nav = [
 
 const emptyProgress: CourseProgress = { demos: [], lessons: [], blocks: [], videoSubmitted: false, video: null };
 
+const readApiJson = async <T,>(response: Response): Promise<T> => {
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    throw new Error("Сервис регистрации вернул некорректный ответ. Открой основную платформу Академии и попробуй ещё раз.");
+  }
+  return response.json() as Promise<T>;
+};
+
 const persistLearningProgress = async (kind: "demo" | "lesson" | "block", id: string, percent = 100) => {
   const response = await fetch("/api/progress", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind, id, percent }) });
   const data = await response.json().catch(() => ({})) as { error?: string };
@@ -349,12 +357,12 @@ function RegistrationGate({ state, defaultEmail, onVerificationPending }: { stat
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ firstName, lastName, phone, email }),
       });
-      const data = await response.json() as { verificationRequired?: boolean; email?: string; error?: string };
+      const data = await readApiJson<{ verificationRequired?: boolean; email?: string; error?: string }>(response);
+      if (!response.ok) throw new Error(data.error || "Не удалось завершить регистрацию.");
       if (data.verificationRequired && data.email) {
         onVerificationPending(data.email);
         return;
       }
-      if (!response.ok) throw new Error(data.error || "Не удалось завершить регистрацию.");
       throw new Error("Не удалось отправить письмо для подтверждения.");
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Не удалось завершить регистрацию.");
@@ -374,7 +382,7 @@ function RegistrationGate({ state, defaultEmail, onVerificationPending }: { stat
       setResendStatus("");
       try {
         const response = await fetch("/api/resend-verification", { method: "POST" });
-        const data = await response.json() as { error?: string };
+        const data = await readApiJson<{ error?: string }>(response);
         if (!response.ok) throw new Error(data.error || "Не удалось отправить письмо повторно.");
         setResendStatus("Новое письмо отправлено. Проверь входящие и папку «Спам». ");
       } catch (reason) {

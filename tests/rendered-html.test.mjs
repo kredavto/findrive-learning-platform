@@ -27,6 +27,9 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.doesNotMatch(page, /Текст урока пока закрыт/i);
   assert.doesNotMatch(page, /watchedLessons|videoWatched/i);
   assert.match(page, /Регистрация амбассадора/i);
+  assert.match(page, /Сервис регистрации вернул некорректный ответ/i);
+  assert.match(page, /readApiJson<\{ verificationRequired\?: boolean; email\?: string; error\?: string \}>/i);
+  assert.match(page, /if \(!response\.ok\) throw new Error\(data\.error \|\| "Не удалось завершить регистрацию\."\);[\s\S]*if \(data\.verificationRequired/i);
   assert.match(page, /Подтверди почту/i);
   assert.match(page, /Отправить письмо повторно/i);
   assert.match(page, /Я подтвердил почту/i);
@@ -130,6 +133,8 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(styles, /@media\(max-width:480px\)/i);
   assert.doesNotMatch(page, /Your site is taking shape/i);
   assert.doesNotMatch(page, /эскал|экал/i);
+
+  assert.match(await readFile(new URL("../next.config.ts", import.meta.url), "utf8"), /findrive-academy\.kredavto\.chatgpt\.site/i);
 
   const materials = [
     "findrive-agent-agreement-template.docx",
