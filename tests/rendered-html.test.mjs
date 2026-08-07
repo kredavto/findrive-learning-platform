@@ -28,6 +28,7 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.doesNotMatch(page, /watchedLessons|videoWatched/i);
   assert.match(page, /Регистрация амбассадора/i);
   assert.match(page, /Компания планирует ежегодно удваивать масштабы своего бизнеса/i);
+  assert.match(page, /готовы ли они заключить договор займа непосредственно с учредителем МКК/i);
   assert.match(page, /Сервис регистрации вернул некорректный ответ/i);
   assert.match(page, /readApiJson<\{ verificationRequired\?: boolean; email\?: string; error\?: string \}>/i);
   assert.match(page, /if \(!response\.ok\) throw new Error\(data\.error \|\| "Не удалось завершить регистрацию\."\);[\s\S]*if \(data\.verificationRequired/i);
