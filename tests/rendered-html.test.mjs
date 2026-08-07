@@ -31,6 +31,7 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /Амбассадор должен иметь четкое представление о планах развития компании/i);
   assert.match(page, /минимальная сумма привлечения в размере 1 млн ₽, максимальная сумма не ограничена/i);
   assert.match(page, /Кто же такой амбассадор и в чём заключается его основная функция/i);
+  assert.match(page, /предсказуемее резких рывков/i);
   assert.match(page, /готовы ли они заключить договор займа непосредственно с учредителем МКК/i);
   assert.match(page, /Сервис регистрации вернул некорректный ответ/i);
   assert.match(page, /readApiJson<\{ verificationRequired\?: boolean; email\?: string; error\?: string \}>/i);
