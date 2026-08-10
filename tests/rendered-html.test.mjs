@@ -35,6 +35,9 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /Ежемесячный доход такого амбассадора \(до вычета налогов\) составляет не менее 500 000 руб/i);
   assert.match(page, /Расчёт вознаграждения по устной договорённости без сверки лида и документов/i);
   assert.match(page, /Ограничиться демонстрацией должности и пропустить учебный курс/i);
+  const contextualDemoDistractors = [...page.matchAll(/"demo-[^"]+-q": \[\["[^"]+", "([^"]+)"\], \["[^"]+", "([^"]+)"\]\]/g)];
+  assert.equal(contextualDemoDistractors.length, 12);
+  assert.equal(new Set(contextualDemoDistractors.flatMap((match) => [match[1], match[2]])).size, 24);
   assert.match(page, /готовы ли они заключить договор займа непосредственно с учредителем МКК/i);
   assert.match(page, /Сервис регистрации вернул некорректный ответ/i);
   assert.match(page, /readApiJson<\{ verificationRequired\?: boolean; email\?: string; error\?: string \}>/i);

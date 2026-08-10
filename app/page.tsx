@@ -87,11 +87,29 @@ type TrainingBlock = {
   finalQuestions: TrainingQuestion[];
 };
 
+const demoQuestionDistractors: Record<string, [string, string][]> = {
+  "demo-welcome-q": [["access", "Получить доступ к материалам без последовательного прохождения тем"], ["rush", "Сразу приступить к поиску инвесторов, не разобравшись в роли и рабочем маршруте"]],
+  "demo-company-history-q": [["impressions", "Пересказывать только личные впечатления без подтверждения статуса и фактов"], ["generic", "Скрыть специализацию компании за общими рекламными формулировками"]],
+  "demo-mission-q": [["unchecked", "Обещать клиенту результат до проверки его потребности и документов"], ["random-lead", "Передавать любой контакт без уточнения запроса и соответствия целевой аудитории"]],
+  "demo-financials-q": [["no-date", "Называть финансовые показатели без даты и источника"], ["inflate", "Самостоятельно округлять цифры в большую сторону для убедительности"]],
+  "demo-development-q": [["riskless-growth", "Увеличивать портфель без контроля рисков и качества клиентского сервиса"], ["sporadic", "Совершать редкие несогласованные действия без измеримых целей"]],
+  "demo-audience-q": [["no-authority", "Собеседника без полномочий, который не представляет юридическое лицо"], ["deposit", "Контакт, ожидающий банковский вклад с гарантией отсутствия риска"]],
+  "demo-products-q": [["terms-first", "Сразу озвучить условия, не выяснив цель обращения клиента"], ["mix", "Представить финансирование бизнеса как обычный заём под залог автомобиля"]],
+  "demo-average-ticket-q": [["mandatory", "Минимальную сумму, которую обязан получить каждый новый заёмщик"], ["ambassador-income", "Доход амбассадора по одному привлечённому инвестору"]],
+  "demo-ambassador-role-q": [["guarantee", "Дать от имени компании гарантию доходности и возврата средств"], ["contacts-only", "Собрать как можно больше неквалифицированных контактов без следующего шага"]],
+  "demo-motivation-q": [["verbal", "После устного обещания клиента инвестировать без оформления документов"], ["untracked", "После передачи незарегистрированного контакта без проверки атрибуции"]],
+  "demo-sales-plans-q": [["messages-only", "Только из количества отправленных сообщений без учёта качества контактов"], ["random-actions", "Из разовых активностей без этапов, сроков и анализа конверсии"]],
+  "demo-reports-q": [["name-only", "Только имя клиента без результата контакта и следующего шага"], ["private-data", "Личные сведения, которые не относятся к работе с лидом"]],
+};
+
 const question = (id: string, text: string, options: [string, string][], correct: string, explanation: string): TrainingQuestion => {
-  const expandedOptions: [string, string][] = options.length >= 4 ? options : [
-    ...options,
+  const contextualDistractors: [string, string][] = demoQuestionDistractors[id] ?? [
     [`${id}-guess`, "Действовать наугад — порядок и контекст не имеют значения"],
     [`${id}-promise`, "Сразу дать обещание клиенту без проверки и согласования"],
+  ];
+  const expandedOptions: [string, string][] = options.length >= 4 ? options : [
+    ...options,
+    ...contextualDistractors,
   ];
   return { id, text, options: expandedOptions.map(([optionId, optionText]) => ({ id: optionId, text: optionText })), correct, explanation };
 };
