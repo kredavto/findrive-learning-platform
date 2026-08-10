@@ -18,8 +18,13 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /Проблемные вопросы/i);
   assert.match(page, /Извлекающие вопросы/i);
   assert.match(page, /Направляющие вопросы/i);
-  assert.match(page, /guess.*Действовать наугад/s);
-  assert.match(page, /promise.*Сразу дать обещание/s);
+  assert.doesNotMatch(page, /Действовать наугад — порядок и контекст не имеют значения/i);
+  assert.doesNotMatch(page, /Сразу дать обещание клиенту без проверки и согласования/i);
+  const contextualLearningDistractors = [...page.matchAll(/^\s+"(?!demo-)[^"]+": \[\["[^"]+", "([^"]+)"\], \["[^"]+", "([^"]+)"\]\]/gm)];
+  assert.equal(contextualLearningDistractors.length, 41);
+  assert.equal(new Set(contextualLearningDistractors.flatMap((match) => [match[1], match[2]])).size, 82);
+  assert.match(page, /если стоимость залога выше суммы займа/i);
+  assert.match(page, /Какой продукт вас заинтересовал\?/i);
   assert.match(page, /Ответы на возражения/i);
   assert.match(page, /Юридические лица/i);
   assert.match(page, /accept="video\/mp4,.mp4"/i);

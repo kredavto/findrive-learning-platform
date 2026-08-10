@@ -87,7 +87,48 @@ type TrainingBlock = {
   finalQuestions: TrainingQuestion[];
 };
 
-const demoQuestionDistractors: Record<string, [string, string][]> = {
+const questionDistractors: Record<string, [string, string][]> = {
+  "company-model-q": [["ads-first", "С перечня рекламных преимуществ без указания источников"], ["guarantees-first", "С гарантии сохранности и возврата привлечённых средств"]],
+  "borrower-product-q": [["fixed-rate", "Фиксированную ставку до проверки документов"], ["fixed-timing", "Конкретный срок выдачи займа до решения специалиста"]],
+  "business-funding-q": [["unverified-ip", "Любого индивидуального предпринимателя без проверки статуса"], ["employee", "Сотрудника компании без полномочий принимать финансовые решения"]],
+  "risk-documents-q": [["slides-guarantee", "Сослаться на презентацию как на юридическую гарантию"], ["self-interpret", "Самостоятельно истолковать договор и налоговые последствия"]],
+  "company-final-1": [["social-reviews", "По отзывам в социальных сетях"], ["verbal-confirmation", "По устному подтверждению амбассадора"]],
+  "company-final-2": [["yes-overcollateralized", "Да, если стоимость залога выше суммы займа"], ["yes-signed", "Да, если заёмщик подписал договор"]],
+  "company-final-3": [["investor", "Сам инвестор после устной договорённости"], ["meeting-participant", "Любой сотрудник, участвующий во встрече"]],
+  "role-boundaries-q": [["within-slides", "Да, в пределах условий из презентации"], ["client-request", "Да, если клиент просит изменить ставку"]],
+  "target-audience-q": [["after-presentation", "После отправки ему презентации"], ["verbal-status", "После устного заверения ИП о подходящем статусе"]],
+  "workflow-q": [["passport-first", "Копия паспорта потенциального клиента"], ["rate-first", "Согласованная амбассадором персональная ставка"]],
+  "lead-handoff-q": [["signed-contract", "Предварительно подписанный договор"], ["ambassador-forecast", "Финансовый прогноз, самостоятельно составленный амбассадором"]],
+  "ambassador-final-1": [["advisor", "Как финансовый консультант, гарантирующий доходность"], ["signatory", "Как представитель, имеющий право подписывать договор"]],
+  "ambassador-final-2": [["once", "Да, если материал отправляется только один раз"], ["public-address", "Да, если адрес получателя найден в открытом источнике"]],
+  "ambassador-final-3": [["phone-only", "Только номер телефона без контекста обращения"], ["full-documents", "Полный пакет персональных документов до получения согласия клиента"]],
+  "gratitude-q": [["pressure-close", "Создать ощущение дефицита и потребовать немедленного решения"], ["payment-first", "Сразу перейти к оплате без выявления потребности"]],
+  "sales-stages-q": [["contract-now", "Отправить договор и реквизиты на оплату"], ["deadline-pressure", "Усилить давление ограниченным сроком предложения"]],
+  "lead-to-meeting-q": [["all-terms", "Подробно разобрать все условия договора"], ["documents-first", "Получить документы клиента до обсуждения его интереса"]],
+  "meeting-to-discovery-q": [["product-interest", "Какой продукт вас заинтересовал?"], ["meeting-tomorrow", "Хотите назначить встречу на завтра?"]],
+  "discovery-to-payment-q": [["client-alone", "Сам клиент в одностороннем порядке"], ["client-lawyer", "Юрист клиента без согласования с компанией"]],
+  "payment-to-renewal-q": [["constant-pitches", "Новое коммерческое предложение в каждом сообщении"], ["no-contact", "Полное отсутствие контакта после получения средств"]],
+  "sales-principles-q": [["message-volume", "Количество сообщений независимо от качества контактов"], ["fast-pressure", "Давление на клиента ради быстрого ответа"]],
+  "objections-q": [["interrupt", "Перебить клиента и повторить презентацию"], ["remove-risk", "Пообещать полное исключение любого риска"]],
+  "partner-question-q": [["internet-answer", "Переслать первый найденный ответ из интернета"], ["client-interprets", "Предложить партнёру самостоятельно истолковать налоговые правила"]],
+  "sales-materials-q": [["hide-date", "Да, если клиент не заметит дату документа"], ["verbal-warning", "Да, если устно предупредить о возможных неточностях"]],
+  "sales-final-1": [["before-situation", "В начале знакомства, до выяснения ситуации клиента"], ["after-contract", "После заключения договора при обсуждении оплаты"]],
+  "sales-final-2": [["refute", "Сразу опровергнуть слова клиента"], ["skip-reason", "Продолжить презентацию, не уточняя причину возражения"]],
+  "sales-final-3": [["long-monologue", "Максимально подробный монолог амбассадора"], ["send-everything", "Отправка всех материалов без договорённости с клиентом"]],
+  "personal-link-q": [["before-contact", "До первого контакта, чтобы заинтересовать клиента"], ["third-party-phone", "Сразу после получения номера телефона от третьего лица"]],
+  "crm-statuses-q": [["yield-forecast", "Прогноз доходности по будущей сделке"], ["client-impression", "Общее впечатление амбассадора от клиента"]],
+  "reward-q": [["verbal-intent", "После устного намерения клиента инвестировать"], ["slides-sent", "После отправки клиенту презентации"]],
+  "reporting-q": [["unrelated-data", "Личные данные, не связанные со сделкой"], ["third-party-chats", "Все переписки клиента с третьими лицами"]],
+  "tools-final-1": [["agreed-return", "Предварительно согласованная амбассадором доходность"], ["published-contact", "Публичная публикация контактных данных клиента"]],
+  "tools-final-2": [["yes-crm", "Да, если расчёт сформирован в CRM"], ["yes-slides", "Да, если такая сумма указана в презентации"]],
+  "tools-final-3": [["future-use", "Собирать сведения на будущее без определённой цели"], ["share-all", "Передавать данные всем участникам команды без ограничения доступа"]],
+  "zones-q": [["yellow-disclaimer", "Жёлтая, если добавить к обещанию оговорку"], ["green-slides", "Зелёная, если цифры указаны в презентации"]],
+  "ads-consent-q": [["other-channel", "Продолжить рассылку через другой канал связи"], ["other-ambassador", "Передать контакт другому амбассадору для повторного обращения"]],
+  "legal-ip-q": [["old-registration", "Да, если ИП зарегистрирован несколько лет назад"], ["minimum-amount", "Да, если ИП готов внести минимальную сумму"]],
+  "escalation-q": [["name-only", "Только имя специалиста без срока обратной связи"], ["already-solved", "Сообщить, что вопрос решён, хотя подтверждённого ответа ещё нет"]],
+  "compliance-final-1": [["verbal-only", "Сохранить обещание только для устной встречи"], ["fine-print", "Добавить к обещанию предупреждение мелким шрифтом"]],
+  "compliance-final-2": [["pause-and-return", "Сделать паузу и возобновить рассылку позднее"], ["transfer-contact", "Передать контакт коллеге для нового обращения"]],
+  "compliance-final-3": [["all-subscribers", "Всем подписчикам без проверки их статуса"], ["car-owners", "Только физическим лицам, владеющим автомобилем"]],
   "demo-welcome-q": [["access", "Получить доступ к материалам без последовательного прохождения тем"], ["rush", "Сразу приступить к поиску инвесторов, не разобравшись в роли и рабочем маршруте"]],
   "demo-company-history-q": [["impressions", "Пересказывать только личные впечатления без подтверждения статуса и фактов"], ["generic", "Скрыть специализацию компании за общими рекламными формулировками"]],
   "demo-mission-q": [["unchecked", "Обещать клиенту результат до проверки его потребности и документов"], ["random-lead", "Передавать любой контакт без уточнения запроса и соответствия целевой аудитории"]],
@@ -119,13 +160,11 @@ const shuffleDemoOptions = (id: string, options: [string, string][], correct: st
 };
 
 const question = (id: string, text: string, options: [string, string][], correct: string, explanation: string): TrainingQuestion => {
-  const contextualDistractors: [string, string][] = demoQuestionDistractors[id] ?? [
-    [`${id}-guess`, "Действовать наугад — порядок и контекст не имеют значения"],
-    [`${id}-promise`, "Сразу дать обещание клиенту без проверки и согласования"],
-  ];
+  const contextualDistractors = questionDistractors[id];
+  if (options.length < 4 && !contextualDistractors) throw new Error(`Для вопроса ${id} не заданы контекстные варианты ответа`);
   const expandedOptions: [string, string][] = options.length >= 4 ? options : [
     ...options,
-    ...contextualDistractors,
+    ...(contextualDistractors ?? []),
   ];
   const orderedOptions = shuffleDemoOptions(id, expandedOptions, correct);
   return { id, text, options: orderedOptions.map(([optionId, optionText]) => ({ id: optionId, text: optionText })), correct, explanation };
