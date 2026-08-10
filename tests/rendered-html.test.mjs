@@ -47,6 +47,7 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /if \(shuffled\[0\]\?\.\[0\] === correct\)/);
   assert.match(page, /Средний чек займа на одного Заемщика, рассчитанный статистическим путем/i);
   assert.match(page, /Добро пожаловать в Академию ООО МКК «ФИНДРАЙВ»!/i);
+  assert.match(page, /currentLesson\.id === "company-model"[\s\S]*?indexOf\("!"\) \+ 1\)\}<br\/>/i);
   assert.match(page, /готовы ли они заключить договор займа непосредственно с учредителем МКК/i);
   assert.match(page, /Сервис регистрации вернул некорректный ответ/i);
   assert.match(page, /readApiJson<\{ verificationRequired\?: boolean; email\?: string; error\?: string \}>/i);
