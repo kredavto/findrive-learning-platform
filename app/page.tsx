@@ -102,6 +102,22 @@ const demoQuestionDistractors: Record<string, [string, string][]> = {
   "demo-reports-q": [["name-only", "Только имя клиента без результата контакта и следующего шага"], ["private-data", "Личные сведения, которые не относятся к работе с лидом"]],
 };
 
+const shuffleDemoOptions = (id: string, options: [string, string][], correct: string): [string, string][] => {
+  if (!id.startsWith("demo-") || options.length < 2) return options;
+  const shuffled = [...options];
+  let seed = [...id].reduce((value, character) => (Math.imul(value, 31) + character.charCodeAt(0)) >>> 0, 2166136261);
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    const swapIndex = seed % (index + 1);
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+  if (shuffled[0]?.[0] === correct) {
+    const swapIndex = 1 + (seed % (shuffled.length - 1));
+    [shuffled[0], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[0]];
+  }
+  return shuffled;
+};
+
 const question = (id: string, text: string, options: [string, string][], correct: string, explanation: string): TrainingQuestion => {
   const contextualDistractors: [string, string][] = demoQuestionDistractors[id] ?? [
     [`${id}-guess`, "Действовать наугад — порядок и контекст не имеют значения"],
@@ -111,7 +127,8 @@ const question = (id: string, text: string, options: [string, string][], correct
     ...options,
     ...contextualDistractors,
   ];
-  return { id, text, options: expandedOptions.map(([optionId, optionText]) => ({ id: optionId, text: optionText })), correct, explanation };
+  const orderedOptions = shuffleDemoOptions(id, expandedOptions, correct);
+  return { id, text, options: orderedOptions.map(([optionId, optionText]) => ({ id: optionId, text: optionText })), correct, explanation };
 };
 
 const lesson = (id: string, title: string, duration: string, intro: string, callout: string, points: string[], conclusion: string, check: TrainingQuestion, theorySections?: TrainingLesson["theorySections"]): TrainingLesson => ({

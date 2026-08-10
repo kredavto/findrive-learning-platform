@@ -38,6 +38,8 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   const contextualDemoDistractors = [...page.matchAll(/"demo-[^"]+-q": \[\["[^"]+", "([^"]+)"\], \["[^"]+", "([^"]+)"\]\]/g)];
   assert.equal(contextualDemoDistractors.length, 12);
   assert.equal(new Set(contextualDemoDistractors.flatMap((match) => [match[1], match[2]])).size, 24);
+  assert.match(page, /const orderedOptions = shuffleDemoOptions\(id, expandedOptions, correct\)/);
+  assert.match(page, /if \(shuffled\[0\]\?\.\[0\] === correct\)/);
   assert.match(page, /готовы ли они заключить договор займа непосредственно с учредителем МКК/i);
   assert.match(page, /Сервис регистрации вернул некорректный ответ/i);
   assert.match(page, /readApiJson<\{ verificationRequired\?: boolean; email\?: string; error\?: string \}>/i);
