@@ -997,7 +997,7 @@ function Course({ progress, onProgress, onVideoCard }: { progress: CourseProgres
           </section>
 
           <div className="lesson-reading">
-            <p className="lesson-intro">{currentLesson.id === "company-model" ? <>{currentLesson.intro.slice(0, currentLesson.intro.indexOf("!") + 1)}<br/>{currentLesson.intro.slice(currentLesson.intro.indexOf("!") + 1).trimStart()}</> : currentLesson.intro}</p>
+            <p className={`lesson-intro ${currentLesson.id === "company-model" ? "course-welcome-intro" : ""}`}>{currentLesson.id === "company-model" ? <><span>{currentLesson.intro.slice(0, currentLesson.intro.indexOf("!") + 1)}</span><span className="course-welcome-copy">{currentLesson.intro.slice(currentLesson.intro.indexOf("!") + 1).trimStart()}</span></> : currentLesson.intro}</p>
             <aside className="green-callout"><CheckCircle2 size={20}/><p>{currentLesson.callout}</p></aside>
             <div className="lesson-points"><h3>Ключевые пункты:</h3><ul>{currentLesson.points.map((point) => <li key={point}><Check size={15}/><span>{point}</span></li>)}</ul></div>
             {currentLesson.theorySections?.length ? <section className="spin-theory"><h3>Когда применять каждый тип вопроса</h3><div className="spin-theory-grid">{currentLesson.theorySections.map((section, index) => <article key={section.title}><span>{index + 1}</span><h4>{section.title}</h4><p>{section.when}</p><strong>Примеры:</strong><ul>{section.examples.map((example) => <li key={example}>«{example}»</li>)}</ul><aside><CheckCircle2 size={15}/>{section.note}</aside></article>)}</div></section> : null}
