@@ -162,6 +162,8 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(styles, /Enlarged FINDRIVE Academy brand/i);
   assert.match(styles, /sidebar \.brand-logo\{width:220px/i);
   assert.match(styles, /sidebar \.brand-academy\{font-size:14px/i);
+  assert.match(styles, /Readable payout process labels/i);
+  assert.match(styles, /\.process-steps p\{color:#fff\}/i);
   assert.match(styles, /FINDRIVE presentation palette/i);
   assert.match(styles, /\.zone>div\{[^}]*font-size:12px/i);
   assert.match(styles, /\.zone h2\{font-size:18px/i);
