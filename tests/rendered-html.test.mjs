@@ -162,6 +162,9 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(styles, /sidebar \.brand-logo\{width:220px/i);
   assert.match(styles, /sidebar \.brand-academy\{font-size:14px/i);
   assert.match(styles, /FINDRIVE presentation palette/i);
+  assert.match(styles, /\.zone>div\{[^}]*font-size:12px/i);
+  assert.match(styles, /\.zone h2\{font-size:18px/i);
+  assert.match(styles, /\.zone ul\{[^}]*font-size:13px;line-height:1\.45/i);
   assert.match(styles, /@media\(max-width:480px\)/i);
   assert.doesNotMatch(page, /Your site is taking shape/i);
   assert.doesNotMatch(page, /эскал|экал/i);
