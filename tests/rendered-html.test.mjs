@@ -164,6 +164,11 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(styles, /sidebar \.brand-academy\{font-size:14px/i);
   assert.match(styles, /Readable payout process labels/i);
   assert.match(styles, /\.process-steps p\{color:#fff\}/i);
+  assert.match(page, /const knowledgeMaterials = \[/i);
+  assert.match(page, /Презентация ФИНДРАЙВ — desktop/i);
+  assert.match(page, /Презентация ФИНДРАЙВ — mobile/i);
+  assert.match(page, /Агентский договор ФИНДРАЙВ — амбассадор/i);
+  assert.match(page, /Презентации и агентский договор/i);
   assert.match(styles, /FINDRIVE presentation palette/i);
   assert.match(styles, /\.zone>div\{[^}]*font-size:12px/i);
   assert.match(styles, /\.zone h2\{font-size:18px/i);
