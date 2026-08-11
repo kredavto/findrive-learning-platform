@@ -172,6 +172,8 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /Договор займа с ООО МКК «ФИНДРАЙВ»/i);
   assert.match(page, /findrive-founder-loan-agreement-template\.docx/i);
   assert.match(page, /findrive-loan-agreement-10m-template\.docx/i);
+  assert.match(page, /Если инвестором выступает частное лицо, с ним может заключить Договор займа только учредитель МКК как физическое лицо/i);
+  assert.match(page, /Если инвестор дал положительный ответ, только после этого амбассадор может направить в МКК информацию о готовящейся сделке/i);
   assert.match(page, /Презентации и договоры/i);
   assert.match(styles, /FINDRIVE presentation palette/i);
   assert.match(styles, /\.zone>div\{[^}]*font-size:12px/i);
