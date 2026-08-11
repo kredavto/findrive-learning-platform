@@ -313,6 +313,10 @@ const demoAdditionalParagraphs: Record<string, string[]> = {
   "demo-sales-plans": ["Мы считаем успешным амбассадором партнёра, который регулярно привлекает не менее 10 000 000 руб. в месяц от своих инвесторов в бизнес компании. Ежемесячный доход такого амбассадора (до вычета налогов) составляет не менее 500 000 руб. У наших амбассадоров нет потолка в доходе. Твой ежемесячный доход зависит только от тебя самого и твоего умения работать с инвесторами. А мы поможем выстроить с ними качественный диалог и коммуникацию."],
 };
 
+const courseAdditionalParagraphs: Record<string, string[]> = {
+  "company-model": ["Наши клиенты — это физические лица, индивидуальные предприниматели и юридические лица, которым срочно нужны деньги на неотложные нужды, погашение долгов в других кредитных организациях, на пополнение оборотных средств для ведения бизнеса и на покрытие кассовых разрывов. Наш целевой сегмент клиентов — это граждане и юридические лица, которые по каким-либо причинам не могут получить кредит в банке (например, у них уже и так много действующих кредитов, либо в процессе обслуживания долга была допущена длительная просрочка, которая негативно повлияла на их кредитную историю, либо просто нет возможности документально подтвердить официальный доход). Фактически такие клиенты готовы кредитоваться по ломбардной схеме, оставляя в залог свой автомобиль."],
+};
+
 const scripts = [
   {
     title: "Первое сообщение знакомому контакту",
@@ -998,6 +1002,7 @@ function Course({ progress, onProgress, onVideoCard }: { progress: CourseProgres
 
           <div className="lesson-reading">
             <p className={`lesson-intro ${currentLesson.id === "company-model" ? "course-welcome-intro" : ""}`}>{currentLesson.id === "company-model" ? <><span>{currentLesson.intro.slice(0, currentLesson.intro.indexOf("!") + 1)}</span><span className="course-welcome-copy">{currentLesson.intro.slice(currentLesson.intro.indexOf("!") + 1).trimStart()}</span></> : currentLesson.intro}</p>
+            {courseAdditionalParagraphs[currentLesson.id]?.map((paragraph) => <p className="lesson-intro course-additional-paragraph" key={paragraph}>{paragraph}</p>)}
             <aside className="green-callout"><CheckCircle2 size={20}/><p>{currentLesson.callout}</p></aside>
             <div className="lesson-points"><h3>Ключевые пункты:</h3><ul>{currentLesson.points.map((point) => <li key={point}><Check size={15}/><span>{point}</span></li>)}</ul></div>
             {currentLesson.theorySections?.length ? <section className="spin-theory"><h3>Когда применять каждый тип вопроса</h3><div className="spin-theory-grid">{currentLesson.theorySections.map((section, index) => <article key={section.title}><span>{index + 1}</span><h4>{section.title}</h4><p>{section.when}</p><strong>Примеры:</strong><ul>{section.examples.map((example) => <li key={example}>«{example}»</li>)}</ul><aside><CheckCircle2 size={15}/>{section.note}</aside></article>)}</div></section> : null}
