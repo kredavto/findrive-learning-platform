@@ -58,7 +58,7 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.doesNotMatch(page, /ФИНДРАЙВ — микрокредитная компания, работающая с займами под залог автомобилей/i);
   assert.match(page, /currentLesson\.id === "company-model"[\s\S]*?course-welcome-intro[\s\S]*?course-welcome-copy/i);
   assert.match(styles, /course-welcome-intro>span\{display:block\}/i);
-  assert.match(styles, /course-welcome-copy,.lesson-intro\.course-additional-paragraph\{text-align:justify;text-justify:inter-word;hyphens:auto\}/i);
+  assert.match(styles, /lesson-reading>\.lesson-intro:not\(\.welcome-line\),\.lesson-reading \.green-callout p,\.lesson-reading \.lesson-points li span,[^{]+\{text-align:justify;text-justify:inter-word;hyphens:auto\}/i);
   assert.match(page, /готовы ли они заключить договор займа непосредственно с учредителем МКК/i);
   assert.match(page, /Сервис регистрации вернул некорректный ответ/i);
   assert.match(page, /readApiJson<\{ verificationRequired\?: boolean; email\?: string; error\?: string \}>/i);
