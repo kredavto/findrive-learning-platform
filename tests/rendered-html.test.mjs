@@ -46,7 +46,8 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /const orderedOptions = shuffleDemoOptions\(id, expandedOptions, correct\)/);
   assert.match(page, /if \(shuffled\[0\]\?\.\[0\] === correct\)/);
   assert.match(page, /Средний чек займа на одного Заемщика, рассчитанный статистическим путем/i);
-  assert.match(page, /Добро пожаловать в Академию ООО МКК «ФИНДРАЙВ»!/i);
+  assert.match(page, /Добро пожаловать в Академию «ФИНДРАЙВ»!/i);
+  assert.doesNotMatch(page, /Добро пожаловать в Академию ООО МКК «ФИНДРАЙВ»!/i);
   assert.match(page, /ООО МКК «ФИНДРАЙВ» — это микрокредитная компания, работающая на рынке займов под залог автомобилей/i);
   assert.match(page, /Наши клиенты — это физические лица, индивидуальные предприниматели и юридические лица/i);
   assert.match(page, /Фактически такие клиенты готовы кредитоваться по ломбардной схеме, оставляя в залог свой автомобиль/i);
