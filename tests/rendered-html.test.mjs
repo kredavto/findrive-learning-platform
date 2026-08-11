@@ -52,6 +52,8 @@ test("contains the FINDRIVE Academy learning experience", async () => {
   assert.match(page, /Наши клиенты — это физические лица, индивидуальные предприниматели и юридические лица/i);
   assert.match(page, /Фактически такие клиенты готовы кредитоваться по ломбардной схеме, оставляя в залог свой автомобиль/i);
   assert.match(page, /кассовых разрывов\."[\s\S]*"Наш целевой сегмент клиентов — это граждане и юридические лица/i);
+  assert.match(page, /например, у них уже итак много действующих кредитов/i);
+  assert.doesNotMatch(page, /например, у них уже и так много действующих кредитов/i);
   assert.match(page, /courseAdditionalParagraphs\[currentLesson\.id\][\s\S]*course-additional-paragraph/i);
   assert.doesNotMatch(page, /ФИНДРАЙВ — микрокредитная компания, работающая с займами под залог автомобилей/i);
   assert.match(page, /currentLesson\.id === "company-model"[\s\S]*?course-welcome-intro[\s\S]*?course-welcome-copy/i);
